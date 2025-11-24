@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eternion Timeline Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .timeframe-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .timeframe-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .timeframe-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .timeframe-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .timeline-header {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .timeline-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .timeline-header .goal {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .timeline-header .timeframe-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .progress-section {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar-container {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .action-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .action-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .action-item.completed {
+            opacity: 0.6;
+            background: #f5f7fa;
+            border-left-color: #28a745;
+        }
+
+        .action-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-wrapper {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-date {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .action-transit {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .action-description {
+            font-size: 1.05em;
+            line-height: 1.6;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .error {
+            display: none;
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .error.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ Eternion Timeline ✨</h1>
+            <p class="subtitle">Your Personalized Action Plan Aligned to the Stars</p>
+        </header>
+
+        <div class="card">
+            <button class="btn btn-secondary" onclick="fillTestData()">📝 Use Test Data</button>
+            
+            <form id="timelineForm">
+                <div class="form-group">
+                    <label for="outcome">What do you want to achieve?</label>
+                    <input type="text" id="outcome" placeholder="e.g., Get promoted to Senior Manager, Find a romantic partner, Hit $10k/month in revenue" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="context">Tell us about your current situation (optional but helpful)</label>
+                    <textarea id="context" placeholder="Where are you now? What's your starting point? Any relevant context..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Timeframe to achieve this goal:</label>
+                    <div class="timeframe-selector">
+                        <button type="button" class="timeframe-btn" data-months="1">1 Month</button>
+                        <button type="button" class="timeframe-btn active" data-months="3">3 Months</button>
+                        <button type="button" class="timeframe-btn" data-months="6">6 Months</button>
+                        <button type="button" class="timeframe-btn" data-months="12">1 Year</button>
+                    </div>
+                    <input type="hidden" id="timeframe" value="3">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="birthDate">Birth Date</label>
+                        <input type="date" id="birthDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthTime">Birth Time</label>
+                        <input type="time" id="birthTime" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="latitude">Birth Latitude</label>
+                        <input type="number" id="latitude" step="0.0001" placeholder="e.g., 40.7128" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="longitude">Birth Longitude</label>
+                        <input type="number" id="longitude" step="0.0001" placeholder="e.g., -74.0060" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">🔮 Generate My Action Timeline</button>
+            </form>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <h2>Creating your personalized action timeline...</h2>
+            <p>Analyzing transits and generating your cosmic roadmap</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <div class="timeline-header">
+                    <h2>Your Cosmic Action Plan</h2>
+                    <div class="goal" id="goalDisplay"></div>
+                    <div class="timeframe-badge" id="timeframeDisplay"></div>
+                </div>
+
+                <div class="progress-section">
+                    <h3>Your Progress</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar">0%</div>
+                    </div>
+                    <p id="progressText">0 of 0 actions completed</p>
+                </div>
+
+                <div id="actionsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedTimeframe = 3;
+        let actions = [];
+
+        // Timeframe selector
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedTimeframe = parseInt(this.dataset.months);
+                document.getElementById('timeframe').value = selectedTimeframe;
+            });
+        });
+
+        function fillTestData() {
+            document.getElementById('outcome').value = "Hit $10,000 per month in revenue";
+            document.getElementById('context').value = "Currently making $3k/month from freelancing. Have 2 clients and want to scale up.";
+            document.getElementById('birthDate').value = "1990-06-15";
+            document.getElementById('birthTime').value = "14:30";
+            document.getElementById('latitude').value = "40.7128";
+            document.getElementById('longitude').value = "-74.0060";
+            document.querySelectorAll('.timeframe-btn')[2].click(); // 6 months
+        }
+
+        document.getElementById('timelineForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Hide previous results and errors
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+
+            // Gather form data
+            const formData = {
+                outcome: document.getElementById('outcome').value,
+                context: document.getElementById('context').value || "No additional context provided",
+                timeframe: selectedTimeframe,
+                birthDate: document.getElementById('birthDate').value,
+                birthTime: document.getElementById('birthTime').value,
+                latitude: parseFloat(document.getElementById('latitude').value),
+                longitude: parseFloat(document.getElementById('longitude').value)
+            };
+
+            try {
+                const response = await fetch('/api/generate-timeline', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Something went wrong');
+                }
+
+                // Hide loading
+                document.getElementById('loading').classList.remove('active');
+
+                // Display results
+                displayResults(data, formData.outcome, selectedTimeframe);
+
+            } catch (error) {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                document.getElementById('error').classList.add('active');
+            }
+        });
+
+        function displayResults(data, outcome, timeframe) {
+            // Set header
+            document.getElementById('goalDisplay').textContent = outcome;
+            const timeframeText = timeframe === 1 ? '1 Month' : timeframe === 3 ? '3 Months' : timeframe === 6 ? '6 Months' : '1 Year';
+            document.getElementById('timeframeDisplay').textContent = `Timeline: ${timeframeText}`;
+
+            // Store actions
+            actions = data.actions;
+
+            // Load saved progress
+            const savedProgress = loadProgress();
+
+            // Render actions
+            const actionsList = document.getElementById('actionsList');
+            actionsList.innerHTML = '';
+
+            actions.forEach((action, index) => {
+                const isCompleted = savedProgress.includes(index);
+                
+                const actionDiv = document.createElement('div');
+                actionDiv.className = `action-item ${isCompleted ? 'completed' : ''}`;
+                
+                actionDiv.innerHTML = `
+                    <div class="action-header">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" class="checkbox" data-index="${index}" ${isCompleted ? 'checked' : ''}>
+                        </div>
+                        <div class="action-content">
+                            <div class="action-date">${action.date}</div>
+                            <div class="action-description">${action.action}</div>
+                            <div class="action-transit">✨ ${action.transit}</div>
+                        </div>
+                    </div>
+                `;
+
+                actionsList.appendChild(actionDiv);
+            });
+
+            // Add checkbox listeners
+            document.querySelectorAll('.checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', handleCheckboxChange);
+            });
+
+            // Update progress
+            updateProgress();
+
+            // Show results
+            document.getElementById('results').classList.add('active');
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleCheckboxChange(e) {
+            const index = parseInt(e.target.dataset.index);
+            const actionItem = e.target.closest('.action-item');
+            
+            if (e.target.checked) {
+                actionItem.classList.add('completed');
+            } else {
+                actionItem.classList.remove('completed');
+            }
+
+            saveProgress();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const checkedCount = document.querySelectorAll('.checkbox:checked').length;
+            const totalCount = actions.length;
+            const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+            document.getElementById('progressBar').textContent = `${percentage}%`;
+            document.getElementById('progressText').textContent = `${checkedCount} of ${totalCount} actions completed`;
+        }
+
+        function saveProgress() {
+            const completed = [];
+            document.querySelectorAll('.checkbox:checked').forEach(checkbox => {
+                completed.push(parseInt(checkbox.dataset.index));
+            });
+            localStorage.setItem('eternion_progress', JSON.stringify(completed));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('eternion_progress');
+            return saved ? JSON.parse(saved) : [];
+        }
+    </script>
+</body>
+</html>

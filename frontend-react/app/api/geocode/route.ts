@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Sentry from '@sentry/nextjs';
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
   try {
-    const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');
     
     if (!query || query.length < 3) {

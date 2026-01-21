@@ -66,13 +66,17 @@ export default function TimelineGenerator() {
     if (!user || !session) return;
     // Trigger Navigation component to refresh subscription
     // We'll dispatch a custom event that Navigation can listen to
-    window.dispatchEvent(new CustomEvent('refresh-subscription'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('refresh-subscription'));
+    }
   };
 
   const refreshCreditsData = () => {
     if (!user || !session) return;
     // Trigger HeroSection to refresh credits
-    window.dispatchEvent(new CustomEvent('refresh-credits'));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('refresh-credits'));
+    }
   };
 
   const handleGenerateTimeline = async (formData: any) => {

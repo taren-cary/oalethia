@@ -1,164 +1,136 @@
-# Eternion Timeline Generator - Phase 1
+# Oalethia StarManifest™
 
-A Node.js API server that generates personalized astrological timeline narratives using Swiss Ephemeris calculations and AI-generated archetypal story paths.
+A full-stack astrological action timeline generator that creates personalized, actionable plans aligned to your birth chart. Built with Next.js, Express, Swiss Ephemeris, and OpenAI GPT-4o.
 
 ## 🌟 Features
 
 - **Swiss Ephemeris Integration**: Calculate precise planetary positions and natal charts
-- **Transit Calculations**: Analyze 364 days of astrological transits
-- **Aspect Detection**: Identify conjunctions, squares, trines, and sextiles
-- **AI Narratives**: Generate 4 archetypal story paths using OpenAI GPT-4o
-- **Beautiful UI**: Modern, responsive frontend with smooth animations
+- **Transit Calculations**: Analyze astrological transits over customizable timeframes
+- **Aspect Detection**: Identify conjunctions, sextiles, squares, and trines
+- **AI-Powered Action Plans**: Generate 8-12 specific, actionable steps aligned to transits
+- **User Authentication**: Supabase-based authentication system
+- **Credit System**: Free monthly credits with subscription options
+- **Points & Gamification**: Earn points for completing actions and daily affirmations
+- **Birth Chart Storage**: Save and manage your birth chart data
+- **Timeline History**: Access and review your past timeline generations
+- **Daily Affirmations**: Personalized daily affirmations for your journey
+- **Modern UI**: Beautiful, responsive Next.js frontend with smooth animations
 
 ## 📋 Prerequisites
 
-- Node.js 16.x or higher
+- Node.js 20.x or higher
 - npm (Node Package Manager)
 - OpenAI API Key
+- Supabase account (for authentication and database)
+- Stripe account (for payments - optional for development)
 
-## 🚀 Installation
+## 🚀 Quick Start
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### 1. Install All Dependencies
 
-2. **Verify environment variables:**
-   The `.env` file should already contain:
-   ```
-   OPENAI_API_KEY=your_key_here
-   PORT=3000
-   ```
+```bash
+npm run install:all
+```
 
-3. **Verify ephemeris files:**
-   Make sure the following files exist in the `ephemeris/` directory:
-   - `sepl_18.se1`
-   - `semo_18.se1`
+This installs dependencies for both backend and frontend.
 
-## 🎮 Usage
+### 2. Set Up Environment Variables
 
-1. **Start the server:**
-   ```bash
-   npm start
-   ```
+**Backend (Root `.env`):**
+Copy `.env.example` to `.env` and fill in your values:
 
-2. **Open your browser:**
-   Navigate to `http://localhost:3000`
+```env
+PORT=3000
+OPENAI_API_KEY=your_openai_api_key_here
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_stripe_webhook_secret_here
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+```
 
-3. **Use test data (optional):**
-   - Click "Use Test Data" button to pre-fill the form with example data
+**Frontend (`frontend-react/.env.local`):**
+Copy `frontend-react/.env.example` to `frontend-react/.env.local` and fill in your values:
 
-4. **Enter your information:**
-   - Decision or question
-   - Life context
-   - Birth date and time
-   - Birth location (latitude/longitude)
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
+```
 
-5. **Generate timeline:**
-   - Click "Generate My Timeline"
-   - Wait 30-90 seconds for calculations
-   - View your 4 archetypal path narratives
+### 3. Verify Ephemeris Files
+
+Make sure the following files exist in the `ephemeris/` directory:
+- `sepl_18.se1` (Planetary ephemeris data)
+- `semo_18.se1` (Moon ephemeris data)
+
+### 4. Start Development
+
+**Start both frontend and backend simultaneously:**
+```bash
+npm run dev:all
+```
+
+**Or start them separately:**
+```bash
+# Backend only (port 3000)
+npm run dev:backend
+
+# Frontend only (port 3001)
+npm run dev:frontend
+```
+
+### 5. Access the Application
+
+- **Frontend**: http://localhost:3001 (Next.js default port)
+- **Backend API**: http://localhost:3000
 
 ## 🏗️ Architecture
 
-### Core Components
+### Backend (`server_phase2.js`)
 
-**server.js**
-- Express API server
-- Swiss Ephemeris integration for astronomical calculations
-- Transit aspect detection algorithm
-- OpenAI GPT-4o integration for narrative generation
+- **Express API Server**: RESTful API endpoints
+- **Swiss Ephemeris**: Astronomical calculations for natal charts and transits
+- **OpenAI Integration**: GPT-4o for generating action plans and affirmations
+- **Supabase**: Authentication, database, and user management
+- **Stripe**: Payment processing and subscription management
+- **Rate Limiting**: Protection against abuse
 
-**index.html**
-- Single-page application
-- Responsive form interface
-- Results display with narrative cards
-- Loading states and error handling
+### Frontend (`frontend-react/`)
 
-### The Four Archetypes
+- **Next.js 15**: React framework with App Router
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Modern, responsive styling
+- **Supabase Client**: Authentication and real-time data
+- **Stripe Elements**: Secure payment processing
 
-1. **The Magus Path**: Innovation, mastery, manifestation (Jupiter/Mercury/Uranus)
-2. **The Warrior Path**: Challenge, courage, action (Mars/Pluto/Saturn)
-3. **The Nurturer Path**: Care, growth, emotion (Moon/Venus/Neptune)
-4. **The Trickster Path**: Surprise, adaptability, humor (Mercury/Uranus/Moon)
+## 📊 Key API Endpoints
 
-## 📊 API Endpoints
+### Authentication Required
 
-### POST `/api/generate-timeline`
+- `POST /api/generate-timeline` - Generate personalized action timeline
+- `GET /api/credits` - Get user's credit balance
+- `POST /api/credits/use` - Use credits for generation
+- `GET /api/birth-chart` - Get saved birth chart
+- `POST /api/birth-chart` - Save/update birth chart
+- `GET /api/history` - Get timeline generation history
+- `GET /api/points` - Get user points
+- `POST /api/affirm` - Record daily affirmation
+- `POST /api/action-progress` - Update action completion status
 
-Generate astrological timeline narratives.
+### Public/Anonymous
 
-**Request Body:**
-```json
-{
-  "decision": "Should I start my own business?",
-  "lifeContext": "I've been working in corporate for 10 years...",
-  "birthDate": "1990-06-15",
-  "birthTime": "14:30",
-  "latitude": 40.7128,
-  "longitude": -74.0060
-}
-```
+- `POST /api/generate-timeline-anonymous` - Generate timeline without account (limited credits)
+- `POST /api/check-anonymous-credits` - Check anonymous user credits
+- `GET /api/geocode` - Location search for birth place
 
-**Response:**
-```json
-{
-  "narratives": [
-    {
-      "path": "The Magus Path",
-      "theme": "Innovation, mastery, and manifestation...",
-      "story": "You will embark on a journey...",
-      "keyTransits": ["Transit Jupiter trine Natal Sun (March 15, 2025)"],
-      "timeframe": "March - June 2025"
-    }
-  ],
-  "transitsSummary": {
-    "totalAspects": 47,
-    "calculationTime": "32 seconds"
-  }
-}
-```
+### Stripe
 
-### GET `/api/health`
-
-Check server status.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "ephemerisPath": "/path/to/ephemeris"
-}
-```
-
-## 🧪 Testing
-
-### Test Data
-Use the built-in test data by clicking "Use Test Data" button:
-- **Decision**: "Should I start my own business?"
-- **Birth Date**: June 15, 1990
-- **Birth Time**: 14:30
-- **Location**: New York City (40.7128, -74.0060)
-
-### Expected Results
-- Calculation time: 30-90 seconds
-- 4 narrative paths generated
-- 40-60 total transit aspects found
-- Each narrative: 300-400 words
-
-## 📁 File Structure
-
-```
-project/
-├── server.js              # Main server with Swiss Ephemeris & OpenAI
-├── index.html             # Frontend interface
-├── package.json           # Dependencies
-├── .env                   # Environment variables
-├── ephemeris/
-│   ├── sepl_18.se1       # Planetary ephemeris data
-│   └── semo_18.se1       # Moon ephemeris data
-└── README.md             # This file
-```
+- `POST /api/create-checkout-session` - Create subscription checkout
+- `POST /api/create-credits-checkout` - Purchase credits
+- `POST /api/create-portal-session` - Manage subscription
 
 ## 🔧 Technical Details
 
@@ -166,6 +138,7 @@ project/
 - Calculates planetary positions with high precision
 - Uses Placidus house system
 - Supports all 10 major planets (Sun through Pluto)
+- Calculates Ascendant and Midheaven
 
 ### Aspect Detection
 - **Conjunction**: 0° ± 8° orb
@@ -174,79 +147,172 @@ project/
 - **Trine**: 120° ± 8° orb
 
 ### AI Generation
-- Model: GPT-4o
-- Temperature: 0.8 (creative but coherent)
-- Max tokens: 600 per narrative
-- Prompt engineering for archetypal consistency
+- **Model**: GPT-4o with web search capabilities
+- **Temperature**: 0.7 (balanced creativity)
+- **Action Plans**: 8-12 specific, actionable steps per timeline
+- **Strategies**: Detailed 2-3 paragraph strategies for each action
+- **Affirmations**: Daily affirmations aligned to goals
 
-## ⚠️ Phase 1 Limitations
+### Credit System
+- **Free Tier**: 3 credits per month (resets monthly)
+- **Anonymous Users**: Limited free credits per IP
+- **Subscriptions**: Premium tiers with more credits
+- **Credit Purchase**: Buy additional credits as needed
 
-This is a test version with:
-- ❌ No user authentication
-- ❌ No database storage
-- ❌ No credit system
-- ❌ No rate limiting
-- ❌ No production deployment
+### Points System
+- **Action Completed**: 10 points
+- **Timeline Finished**: 50 points
+- **Daily Login**: 5 points
+- **Daily Affirmation**: 5 points
+- **Streaks**: Bonus points for consecutive days
+- **Milestones**: Bonus points for action milestones
 
-## 🚧 Phase 2 (Not Yet Implemented)
+## 📁 Project Structure
 
-Phase 2 will add:
-- Supabase authentication
-- User accounts
-- Credit management (3 free per month)
-- Birth chart storage
-- Generation history
-- Production deployment
+```
+oalethia-starmanifest/
+├── server_phase2.js          # Main backend server
+├── package.json               # Backend dependencies
+├── .env                       # Backend environment variables
+├── .env.example               # Backend env template
+├── ephemeris/                 # Swiss Ephemeris data files
+│   ├── sepl_18.se1
+│   └── semo_18.se1
+├── frontend-react/            # Next.js frontend
+│   ├── app/                   # Next.js App Router pages
+│   ├── components/            # React components
+│   ├── contexts/              # React contexts (Auth)
+│   ├── lib/                   # Utility libraries
+│   ├── package.json           # Frontend dependencies
+│   ├── .env.local             # Frontend environment variables
+│   └── .env.example            # Frontend env template
+└── README.md                  # This file
+```
+
+## 🚀 Deployment
+
+### Backend (Render)
+
+1. Connect your GitHub repository to Render
+2. Set environment variables in Render dashboard:
+   - `OPENAI_API_KEY`
+   - `STRIPE_SECRET_KEY`
+   - `STRIPE_WEBHOOK_SECRET`
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `PORT` (optional, defaults to 3000)
+3. Build command: `npm install`
+4. Start command: `node server_phase2.js`
+
+### Frontend (Netlify)
+
+1. Connect your GitHub repository to Netlify
+2. Set build settings:
+   - **Base directory**: `frontend-react`
+   - **Build command**: `npm run build`
+   - **Publish directory**: `frontend-react/.next`
+3. Set environment variables in Netlify dashboard:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_API_URL` (your Render backend URL)
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+   - `NEXT_PUBLIC_SENTRY_DSN` (optional)
+
+## 🧪 Development Scripts
+
+```bash
+# Install all dependencies (backend + frontend)
+npm run install:all
+
+# Start both frontend and backend
+npm run dev:all
+
+# Start backend only
+npm run dev:backend
+
+# Start frontend only
+npm run dev:frontend
+
+# Start production backend
+npm start
+```
 
 ## 🐛 Troubleshooting
 
-**Server won't start:**
-- Check Node.js version: `node --version` (should be 16+)
-- Verify all dependencies installed: `npm install`
-- Check port 3000 is available
+**Backend won't start:**
+- Check Node.js version: `node --version` (should be 20+)
+- Verify all dependencies: `npm install`
+- Check `.env` file exists and has all required variables
+- Ensure port 3000 is available
+
+**Frontend won't start:**
+- Navigate to `frontend-react/` directory
+- Run `npm install`
+- Check `frontend-react/.env.local` exists
+- Verify `NEXT_PUBLIC_API_URL` points to correct backend
 
 **Ephemeris errors:**
 - Verify `ephemeris/` folder contains `.se1` files
 - Check file permissions
+- Ensure files are not corrupted
 
 **API errors:**
 - Verify OpenAI API key in `.env`
-- Check internet connection
+- Check Supabase credentials
 - Review server logs in terminal
+- Check browser console for frontend errors
 
-**Slow performance:**
-- Normal calculation time: 30-90 seconds
-- Factors: OpenAI API speed, transit calculations
-- Check terminal for progress logs
+**Authentication issues:**
+- Verify Supabase URL and keys match
+- Check Supabase project settings
+- Ensure RLS policies are configured correctly
 
-## 📝 Success Criteria
+## 🔐 Environment Variables Guide
 
-- [x] User can input birth data and decision
-- [x] Server calculates natal chart correctly
-- [x] Server finds all transit aspects over 364 days
-- [x] System generates 4 distinct archetypal narratives
-- [x] Response time under 90 seconds
-- [x] Frontend displays results clearly
-- [x] No crashes or errors during normal operation
+### Backend (`.env`)
+- **Test keys** for local development (`sk_test_...`, `whsec_...`)
+- **Live keys** for production (set in Render dashboard)
 
-## 📄 License
+### Frontend (`.env.local`)
+- **Test keys** for local development (`pk_test_...`)
+- **Live keys** for production (set in Netlify dashboard)
+- `NEXT_PUBLIC_API_URL` should be `http://localhost:3000` for dev, your Render URL for production
 
-This is a test/development version. All rights reserved.
+## 📝 Phase 2 Features
+
+✅ **Implemented:**
+- Supabase authentication
+- User accounts and profiles
+- Credit management (3 free per month)
+- Birth chart storage
+- Timeline generation history
+- Action progress tracking
+- Points and gamification system
+- Daily affirmations
+- Subscription management (Stripe)
+- Rate limiting
+- Production deployment ready
 
 ## 🆘 Support
 
-For issues or questions about Phase 1, review:
-1. Terminal logs for error messages
-2. Browser console for frontend errors
-3. API response format and validation
-4. Swiss Ephemeris documentation
+For issues or questions:
+1. Check terminal logs for backend errors
+2. Check browser console for frontend errors
+3. Review API response format and validation
+4. Verify environment variables are set correctly
+5. Check Supabase and Stripe dashboard configurations
 
 ---
 
 **Built with:**
 - Node.js + Express
-- Swiss Ephemeris (swisseph)
+- Next.js 15 + React 19
+- Swiss Ephemeris (sweph)
 - OpenAI GPT-4o
-- Vanilla JavaScript
-- CSS3 with gradients and animations
+- Supabase
+- Stripe
+- TypeScript
+- Tailwind CSS
 
+**© 2025 Oalethia. All rights reserved.**

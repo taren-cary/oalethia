@@ -3,10 +3,17 @@ node_modules/
 
 # Environment variables
 .env
+.env.local
+.env*.local
+.env.production
+.env.development
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # OS files
 .DS_Store
@@ -15,8 +22,27 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # Build outputs
 dist/
 build/
+.next/
+out/
+
+# Backup files
+*.backup
+*_backup.js
+server_backup.js
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+.temp/
+.tmp/
 

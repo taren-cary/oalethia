@@ -1,11 +1,15 @@
 {
   "name": "eternion-timeline-generator",
   "version": "1.0.0",
-  "description": "Astrology Timeline Generator - Phase 1 Test Version",
-  "main": "server.js",
+  "description": "Astrology Timeline Generator - Phase 2",
+  "main": "server_phase2.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server_phase2.js",
+    "dev": "node server_phase2.js",
+    "dev:frontend": "cd frontend-react && npm run dev",
+    "dev:backend": "node server_phase2.js",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "install:all": "npm install && cd frontend-react && npm install"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.75.0",
@@ -16,6 +20,9 @@
     "openai": "^4.20.1",
     "stripe": "^19.1.0",
     "sweph": "latest"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   },
   "engines": {
     "node": ">=20.0.0"

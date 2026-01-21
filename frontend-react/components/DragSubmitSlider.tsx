@@ -30,7 +30,7 @@ export default function DragSubmitSlider({ onSubmit, loading, disabled }: DragSu
   const sliderRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   const particleIdRef = useRef(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   const SUBMIT_THRESHOLD = 0.8; // 80% drag required
   const SLIDER_WIDTH = 400; // Fixed width for calculations

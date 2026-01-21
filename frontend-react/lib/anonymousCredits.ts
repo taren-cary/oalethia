@@ -4,8 +4,15 @@ export class AnonymousCreditsManager {
   private static CREDITS_KEY = 'eternion_anonymous_credits';
   private static MONTH_KEY = 'eternion_anonymous_month';
 
+  // Check if we're in a browser environment
+  private static isBrowser(): boolean {
+    return typeof window !== 'undefined';
+  }
+
   // Generate a unique anonymous user ID
   private static generateAnonymousId(): string {
+    if (!this.isBrowser()) return '';
+    
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2);
     const screenInfo = `${screen.width}x${screen.height}`;
@@ -16,6 +23,8 @@ export class AnonymousCreditsManager {
 
   // Get or create anonymous user ID
   static getAnonymousUserId(): string {
+    if (!this.isBrowser()) return '';
+    
     let userId = localStorage.getItem(this.ANONYMOUS_USER_KEY);
     
     if (!userId) {
@@ -34,6 +43,8 @@ export class AnonymousCreditsManager {
 
   // Check if we need to reset credits for new month
   private static checkMonthReset(): void {
+    if (!this.isBrowser()) return;
+    
     const currentMonth = this.getCurrentMonth();
     const storedMonth = localStorage.getItem(this.MONTH_KEY);
     
@@ -46,6 +57,8 @@ export class AnonymousCreditsManager {
 
   // Get remaining anonymous credits
   static getRemainingCredits(): number {
+    if (!this.isBrowser()) return 0;
+    
     this.checkMonthReset();
     
     const credits = localStorage.getItem(this.CREDITS_KEY);
@@ -54,6 +67,8 @@ export class AnonymousCreditsManager {
 
   // Use a credit
   static useCredit(): boolean {
+    if (!this.isBrowser()) return false;
+    
     this.checkMonthReset();
     
     const currentCredits = this.getRemainingCredits();
@@ -68,6 +83,17 @@ export class AnonymousCreditsManager {
 
   // Get anonymous user data for API calls
   static getAnonymousUserData() {
+    if (!this.isBrowser()) {
+      return {
+        anonymous_user_id: '',
+        ip_address: '',
+        user_agent: '',
+        screen_resolution: '',
+        timezone: '',
+        month: this.getCurrentMonth()
+      };
+    }
+    
     return {
       anonymous_user_id: this.getAnonymousUserId(),
       ip_address: '', // Will be filled by backend
@@ -80,6 +106,8 @@ export class AnonymousCreditsManager {
 
   // Clear anonymous data (when user signs up)
   static clearAnonymousData(): void {
+    if (!this.isBrowser()) return;
+    
     localStorage.removeItem(this.ANONYMOUS_USER_KEY);
     localStorage.removeItem(this.CREDITS_KEY);
     localStorage.removeItem(this.MONTH_KEY);

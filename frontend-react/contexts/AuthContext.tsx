@@ -57,7 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Clear anonymous data when user signs up
         if (event === 'SIGNED_IN') {
-          AnonymousCreditsManager.clearAnonymousData();
+          if (typeof window !== 'undefined') {
+            AnonymousCreditsManager.clearAnonymousData();
+          }
         }
       } else {
         // Clear user context when signed out

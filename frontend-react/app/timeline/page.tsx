@@ -10,6 +10,10 @@ import Navigation from '@/components/Navigation';
 import WelcomeModal from '@/components/WelcomeModal';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Force dynamic rendering to prevent prerender errors
+// This page relies on client-side state and browser APIs
+export const dynamic = 'force-dynamic';
+
 export default function TimelineGenerator() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);

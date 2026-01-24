@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import * as Sentry from '@sentry/nextjs';
@@ -10,11 +10,7 @@ import Navigation from '@/components/Navigation';
 import WelcomeModal from '@/components/WelcomeModal';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Force dynamic rendering to prevent prerender errors
-// This page relies on client-side state and browser APIs
-export const dynamic = 'force-dynamic';
-
-export default function TimelineGenerator() {
+function TimelineContent() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState('');
@@ -225,5 +221,22 @@ export default function TimelineGenerator() {
         />
       )}
     </main>
+  );
+}
+
+export default function TimelineGenerator() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen relative">
+        <Navigation />
+        <div className="relative z-10 pt-20 flex items-center justify-center min-h-screen">
+          <div className="glass-card p-8 text-center">
+            <div className="text-white text-xl">Loading...</div>
+          </div>
+        </div>
+      </main>
+    }>
+      <TimelineContent />
+    </Suspense>
   );
 }

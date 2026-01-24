@@ -107,7 +107,9 @@ export default function TimelineGenerator() {
       setResults(response.data);
       
       setTimeout(() => {
-        document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+          document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+        }
       }, 100);
     } catch (err: any) {
       console.error('Timeline generation error:', err);

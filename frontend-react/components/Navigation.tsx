@@ -45,7 +45,9 @@ export default function Navigation() {
 
       const { url } = await response.json();
       // Redirect to Stripe Customer Portal
-      window.location.href = url;
+      if (typeof window !== 'undefined') {
+        window.location.href = url;
+      }
     } catch (error: any) {
       console.error('Error opening subscription portal:', error);
       Sentry.captureException(error, {
@@ -71,6 +73,8 @@ export default function Navigation() {
 
   // Listen for refresh events from payment success
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const handleRefreshSubscription = () => {
       if (user && session) {
         fetchUserSubscription();

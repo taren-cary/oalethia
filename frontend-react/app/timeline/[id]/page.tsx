@@ -71,6 +71,8 @@ export default function TimelineViewPage() {
   };
 
   const loadProgress = () => {
+    if (typeof window === 'undefined') return;
+    
     const savedProgress = localStorage.getItem(`eternion_progress_${params.id}`);
     const savedSkipped = localStorage.getItem(`eternion_skipped_${params.id}`);
     const savedAffirmationIndex = localStorage.getItem(`eternion_affirmation_index_${params.id}`);
@@ -128,13 +130,17 @@ export default function TimelineViewPage() {
       : [...completedActions, index];
     
     setCompletedActions(newCompleted);
-    localStorage.setItem(`eternion_progress_${params.id}`, JSON.stringify(newCompleted));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`eternion_progress_${params.id}`, JSON.stringify(newCompleted));
+    }
   };
 
   const skipAction = (index: number) => {
     const newSkipped = [...skippedActions, index];
     setSkippedActions(newSkipped);
-    localStorage.setItem(`eternion_skipped_${params.id}`, JSON.stringify(newSkipped));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`eternion_skipped_${params.id}`, JSON.stringify(newSkipped));
+    }
   };
 
   const toggleActionExpansion = (index: number) => {
@@ -149,8 +155,10 @@ export default function TimelineViewPage() {
 
   const confirmAffirmation = async () => {
     setAffirmationConfirmed(true);
-    const today = new Date().toDateString();
-    localStorage.setItem(`eternion_affirmation_confirmed_${params.id}`, today);
+    if (typeof window !== 'undefined') {
+      const today = new Date().toDateString();
+      localStorage.setItem(`eternion_affirmation_confirmed_${params.id}`, today);
+    }
 
     // Record affirmation in database if user is authenticated
     if (user) {
@@ -201,6 +209,8 @@ export default function TimelineViewPage() {
   };
 
   const showPointsNotification = (points: number) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    
     // Create points notification
     const notification = document.createElement('div');
     notification.style.position = 'fixed';
@@ -230,7 +240,9 @@ export default function TimelineViewPage() {
       duration: 3000,
       easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     }).onfinish = () => {
-      document.body.removeChild(notification);
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
     };
   };
 

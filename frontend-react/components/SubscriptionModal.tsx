@@ -65,7 +65,9 @@ export default function SubscriptionModal({ isOpen, onClose, type }: Subscriptio
 
       const { url } = await response.json();
       // Redirect to Stripe Checkout
-      window.location.href = url;
+      if (typeof window !== 'undefined') {
+        window.location.href = url;
+      }
     } catch (err: any) {
       // Capture payment error in Sentry
       Sentry.captureException(err, {

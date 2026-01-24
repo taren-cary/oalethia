@@ -15,7 +15,7 @@ export class AnonymousCreditsManager {
     
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2);
-    const screenInfo = `${screen.width}x${screen.height}`;
+    const screenInfo = typeof screen !== 'undefined' ? `${screen.width}x${screen.height}` : '0x0';
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     
     return btoa(`${timestamp}-${random}-${screenInfo}-${timezone}`).substring(0, 16);
@@ -97,8 +97,8 @@ export class AnonymousCreditsManager {
     return {
       anonymous_user_id: this.getAnonymousUserId(),
       ip_address: '', // Will be filled by backend
-      user_agent: navigator.userAgent,
-      screen_resolution: `${screen.width}x${screen.height}`,
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      screen_resolution: typeof screen !== 'undefined' ? `${screen.width}x${screen.height}` : '0x0',
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       month: this.getCurrentMonth()
     };

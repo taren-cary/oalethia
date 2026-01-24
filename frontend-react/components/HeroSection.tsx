@@ -62,6 +62,8 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
 
   // Listen for refresh events from payment success
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const handleRefreshCredits = () => {
       if (user) {
         loadUserCredits();
@@ -298,6 +300,8 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
 
   // Close suggestions when clicking outside
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.location-suggestions')) {
@@ -306,7 +310,11 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('mousedown', handleClickOutside);
+      }
+    };
   }, []);
 
   return (
@@ -550,7 +558,11 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
                     <p className="text-red-200/80 text-sm mb-3">{error || formError}</p>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <button 
-                        onClick={() => window.location.reload()}
+                        onClick={() => {
+                          if (typeof window !== 'undefined') {
+                            window.location.reload();
+                          }
+                        }}
                         className="glass-button bg-red-500/20 border-red-400/50 hover:bg-red-500/30 text-red-200 text-sm px-4 py-2"
                       >
                         🔄 Try Again

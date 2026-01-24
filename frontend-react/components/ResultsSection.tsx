@@ -52,10 +52,12 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
 
   useEffect(() => {
     // Clear old progress when new timeline loads (actions change)
-    localStorage.removeItem('eternion_progress');
-    localStorage.removeItem('eternion_skipped');
-    localStorage.removeItem('eternion_affirmation_index');
-    localStorage.removeItem('eternion_affirmation_date');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('eternion_progress');
+      localStorage.removeItem('eternion_skipped');
+      localStorage.removeItem('eternion_affirmation_index');
+      localStorage.removeItem('eternion_affirmation_date');
+    }
     
     // Initialize with empty arrays for fresh start
     setCompletedActions([]);
@@ -67,6 +69,7 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
   // For new timeline generation, use simple daily rotation
   useEffect(() => {
     if (timelineAffirmations.length === 0) return;
+    if (typeof window === 'undefined') return;
 
     const today = new Date().toDateString();
     const savedIndex = localStorage.getItem('eternion_affirmation_index');
@@ -134,13 +137,17 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
       : [...completedActions, index];
     
     setCompletedActions(newCompleted);
-    localStorage.setItem('eternion_progress', JSON.stringify(newCompleted));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eternion_progress', JSON.stringify(newCompleted));
+    }
   };
 
   const skipAction = (index: number) => {
     const newSkipped = [...skippedActions, index];
     setSkippedActions(newSkipped);
-    localStorage.setItem('eternion_skipped', JSON.stringify(newSkipped));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eternion_skipped', JSON.stringify(newSkipped));
+    }
   };
 
   const toggleActionExpansion = (index: number) => {
@@ -156,8 +163,10 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
   const confirmAffirmation = async () => {
     setAffirmationConfirmed(true);
     // Store confirmation for today
-    const today = new Date().toDateString();
-    localStorage.setItem('eternion_affirmation_confirmed', today);
+    if (typeof window !== 'undefined') {
+      const today = new Date().toDateString();
+      localStorage.setItem('eternion_affirmation_confirmed', today);
+    }
     
     // Create sparkle effect
     createSparkleEffect();
@@ -211,6 +220,8 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
   };
 
   const createSparkleEffect = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    
     // Create sparkle particles
     for (let i = 0; i < 12; i++) {
       setTimeout(() => {
@@ -245,7 +256,9 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
             duration: 1000,
             easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }).onfinish = () => {
-            document.body.removeChild(sparkle);
+            if (document.body.contains(sparkle)) {
+              document.body.removeChild(sparkle);
+            }
           };
         }
       }, i * 50);
@@ -253,6 +266,8 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
   };
 
   const showPointsNotification = (points: number) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    
     // Create points notification
     const notification = document.createElement('div');
     notification.style.position = 'fixed';
@@ -282,7 +297,9 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
       duration: 3000,
       easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     }).onfinish = () => {
-      document.body.removeChild(notification);
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
     };
   };
 

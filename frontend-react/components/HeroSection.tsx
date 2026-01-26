@@ -325,7 +325,7 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
             Oalethia StarManifest™
           </h1>
           <p className="text-2xl text-white/90 drop-shadow-lg">
-            Your Personalized Quantum Timeline
+            Your Personalized Manifestation Timeline
           </p>
         </div>
 
@@ -339,7 +339,7 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
                   <h3 className="text-white font-semibold text-lg mb-2">Welcome to Oalethia StarManifest™!</h3>
                   <p className="text-white/80 text-sm mb-3">
                     Get personalized action plans powered by Quantum Astrology. Our AI analyzes your birth chart 
-                    and creates a step-by-step quantum timeline to manifest your goals.
+                    and creates a step-by-step timeline to manifest your goals.
                   </p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     <span className="bg-blue-500/30 text-blue-200 px-2 py-1 rounded">🎯 Personalized Actions</span>
@@ -586,7 +586,7 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
               <div className="glass-card p-8 text-center">
                 <CosmicLoadingSpinner size="large" />
                 <div className="mt-6">
-                  <h3 className="text-white font-semibold text-lg mb-2">Generating Your Quantum Timeline</h3>
+                  <h3 className="text-white font-semibold text-lg mb-2">Generating Your Manifestation Timeline</h3>
                   <p className="text-white/80 text-sm mb-4">
                     We're analyzing your birth chart and creating personalized actions aligned with quantum mechanics...
                   </p>

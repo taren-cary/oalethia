@@ -296,7 +296,7 @@ export default function DragSubmitSlider({ onSubmit, loading, disabled }: DragSu
         <div className="slider-text">
           {isSubmitted ? '🚀 Launching Your Destiny!' : 
            showSubmitText ? '✨ Preparing Eigenstates...' : 
-           '🔮 Generate My Quantum Timeline'}
+           '🔮 Generate My Manifestation Timeline'}
         </div>
       </div>
     </div>

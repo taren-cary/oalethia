@@ -5,9 +5,6 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: false,
   
-  // Disable static optimization for pages that use browser APIs
-  output: 'standalone', // This helps with Netlify deployment
-  
   // Set output file tracing root to silence multiple lockfiles warning
   outputFileTracingRoot: path.join(__dirname, '../'),
   

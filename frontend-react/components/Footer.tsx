@@ -13,7 +13,7 @@ export default function Footer() {
               Oalethia
             </h3>
             <p className="text-gray-400 mb-4 max-w-md">
-              Transform your dreams into reality with personalized action plans aligned to the stars. 
+              Transform your dreams into reality with personalized action plans powered by AI & Quantum Astrology. 
               The only manifestation app you will ever need.
             </p>
             <div className="text-gray-500 text-sm">

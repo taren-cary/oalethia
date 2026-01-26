@@ -4,6 +4,9 @@
 const nextConfig = {
   reactStrictMode: false,
   
+  // Disable static optimization for pages that use browser APIs
+  output: 'standalone', // This helps with Netlify deployment
+  
   // Sentry webpack plugin options
   sentry: {
     // Suppresses source map uploading logs during build

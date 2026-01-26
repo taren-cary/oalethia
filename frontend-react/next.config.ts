@@ -1,4 +1,5 @@
 ﻿const { withSentryConfig } = require("@sentry/nextjs");
+const path = require("path");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -6,6 +7,9 @@ const nextConfig = {
   
   // Disable static optimization for pages that use browser APIs
   output: 'standalone', // This helps with Netlify deployment
+  
+  // Set output file tracing root to silence multiple lockfiles warning
+  outputFileTracingRoot: path.join(__dirname, '../'),
   
   // Sentry webpack plugin options
   sentry: {

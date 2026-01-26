@@ -39,7 +39,13 @@ function getClientIP(req) {
 }
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://oalethia.netlify.app',
+    'http://localhost:3001',
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.static(__dirname));
 

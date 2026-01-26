@@ -46,11 +46,12 @@ export default function CosmicLoadingSpinner({
   // Cycle through loading messages
   useEffect(() => {
     const messages = [
-      "Generating Your Cosmic Roadmap...",
-      "Calculating Planetary Alignments...",
-      "Channeling Stellar Wisdom...",
-      "Aligning Universal Forces...",
-      "Finalizing Your Destiny..."
+      "Calculating Your Natal Operator...",
+      "Preparing Accessible Eigenstates...",
+      "Modulating Probability Amplitudes...",
+      "Adjusting Energy Costs...",
+      "Selecting Most Favorable Collapses...",
+      "Finalizing Your Quantum Timeline..."
     ];
 
     let messageIndex = 0;

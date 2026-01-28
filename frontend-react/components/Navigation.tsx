@@ -8,6 +8,7 @@ import SubscriptionModal from './SubscriptionModal';
 import Link from 'next/link';
 
 export default function Navigation() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [userPoints, setUserPoints] = useState<number>(0);
@@ -164,15 +165,16 @@ export default function Navigation() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-40 p-4">
+      <nav className="fixed top-0 left-0 right-0 z-40 p-3 sm:p-4 bg-black/40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <Link href="/" className="glass-card px-6 py-3 hover:bg-white/20 transition-all">
-            <div className="text-white font-bold text-xl cosmic-text">
+          <Link href="/" className="glass-card px-4 py-2 sm:px-6 sm:py-3 hover:bg-white/20 transition-all">
+            <div className="text-white font-bold text-lg sm:text-xl cosmic-text">
               Oalethia
             </div>
           </Link>
 
-          <div className="flex items-center gap-4">
+          {/* Desktop navigation */}
+          <div className="hidden md:flex items-center gap-4">
             <Link 
               href="/timeline" 
               className="glass-button text-sm"
@@ -294,7 +296,82 @@ export default function Navigation() {
               </>
             )}
           </div>
+
+          {/* Mobile burger button */}
+          <button
+            className="md:hidden glass-card px-3 py-2 flex flex-col justify-center items-center gap-[3px]"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            aria-label="Toggle navigation"
+          >
+            <span className="block w-5 h-[2px] bg-white rounded" />
+            <span className="block w-5 h-[2px] bg-white rounded" />
+            <span className="block w-5 h-[2px] bg-white rounded" />
+          </button>
         </div>
+
+        {/* Mobile dropdown panel */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-black/90 border-t border-white/10">
+            <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-3">
+              <Link
+                href="/timeline"
+                className="glass-button w-full text-sm text-center"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                StarManifest™ Generator
+              </Link>
+
+              {user ? (
+                <>
+                  <Link
+                    href="/timelines"
+                    className="glass-button w-full text-sm text-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    My Timelines
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="glass-button w-full text-sm"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setAuthMode('signin');
+                      setShowAuthModal(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="glass-button w-full text-sm"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setShowAuthModal(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="glass-button w-full text-sm bg-white/30 hover:bg-white/40"
+                  >
+                    Sign Up
+                  </button>
+                  <div className="glass-card px-3 py-2 text-center">
+                    <span className="text-white/80 text-xs">
+                      Try free • No credit card
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
 
       <AuthModal

@@ -42,7 +42,7 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-4 py-20 relative">
+    <section className="min-h-screen flex items-start md:items-center justify-center px-4 pt-28 md:pt-24 pb-16 relative">
       {/* Background */}
       <div className="absolute inset-0 z-0">
         <Image

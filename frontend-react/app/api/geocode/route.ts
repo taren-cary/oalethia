@@ -7,7 +7,7 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // Rate limiting: track last request time per IP
 const rateLimitMap = new Map<string, number>();
-const RATE_LIMIT_MS = 1000; // 1 request per second (OpenStreetMap requirement)
+const RATE_LIMIT_MS = 500; // Allow 2 requests per second (more lenient for typing)
 
 // Clean up old cache entries periodically
 setInterval(() => {
@@ -20,7 +20,9 @@ setInterval(() => {
 }, 60 * 60 * 1000); // Clean up every hour
 
 /**
- * Rate limiting helper - ensures 1 request per second per IP
+ * Rate limiting helper - allows 2 requests per second per IP
+ * This is more lenient than OpenStreetMap's 1 req/sec, but caching helps
+ * and we want good UX for typing
  */
 function checkRateLimit(ip: string): boolean {
   const lastRequest = rateLimitMap.get(ip) || 0;

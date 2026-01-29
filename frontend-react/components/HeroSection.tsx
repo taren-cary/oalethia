@@ -41,6 +41,7 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
   const [userSubscription, setUserSubscription] = useState<any>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [subscriptionModalType, setSubscriptionModalType] = useState<'subscription' | 'credits'>('subscription');
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Load user profile data if user is logged in, or check anonymous credits
   useEffect(() => {
@@ -76,6 +77,15 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
       window.removeEventListener('refresh-credits', handleRefreshCredits);
     };
   }, [user]);
+
+  // Clean up search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
 
   const checkAnonymousCredits = async () => {
     try {
@@ -215,8 +225,17 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
     setSelectedLocation(null);
     setCoordinates({ lat: '', lng: '' });
     
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
     if (value.length >= 3) {
-      searchLocations(value);
+      // Debounce: wait 300ms after user stops typing before searching
+      const timeout = setTimeout(() => {
+        searchLocations(value);
+      }, 300);
+      setSearchTimeout(timeout);
     } else {
       setLocationSuggestions([]);
       setShowSuggestions(false);

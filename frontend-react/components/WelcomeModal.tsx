@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 
@@ -25,9 +25,19 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const { user, setFirstTimeUser } = useAuth();
 
   if (!isOpen || !user) return null;
+
+  // Clean up search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
 
   // Search for location suggestions
   const searchLocations = async (query: string) => {
@@ -68,8 +78,17 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     setLocationError('');
     setCoordinates({ lat: '', lng: '' });
     
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
     if (value.length >= 3) {
-      searchLocations(value);
+      // Debounce: wait 300ms after user stops typing before searching
+      const timeout = setTimeout(() => {
+        searchLocations(value);
+      }, 300);
+      setSearchTimeout(timeout);
     } else {
       setLocationSuggestions([]);
       setShowSuggestions(false);

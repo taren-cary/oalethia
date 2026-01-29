@@ -89,6 +89,22 @@ export default function Navigation() {
     };
   }, [user, session]);
 
+  // Listen for refresh events when points are awarded
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleRefreshPoints = () => {
+      if (user && session) {
+        fetchUserPoints();
+      }
+    };
+
+    window.addEventListener('refresh-points', handleRefreshPoints);
+    return () => {
+      window.removeEventListener('refresh-points', handleRefreshPoints);
+    };
+  }, [user, session]);
+
   const fetchUserPoints = async () => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user-points`, {

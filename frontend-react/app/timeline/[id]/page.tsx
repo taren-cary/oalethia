@@ -184,6 +184,10 @@ export default function TimelineViewPage() {
           if (data.points_awarded > 0) {
             // Show points earned notification
             showPointsNotification(data.points_awarded);
+            // Trigger points refresh in Navigation
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('refresh-points'));
+            }
           }
           // If already affirmed, don't change the button state
           if (data.already_affirmed) {

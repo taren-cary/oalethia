@@ -87,7 +87,8 @@ async function searchGooglePlaces(query: string, apiKey: string): Promise<any[]>
     const data = await response.json();
     
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      throw new Error(`Google Places API error: ${data.status}`);
+      // Silently fail - don't expose Google Places API errors
+      throw new Error(`Places API error: ${data.status}`);
     }
     
     if (data.status === 'ZERO_RESULTS') {
@@ -117,8 +118,9 @@ async function searchGooglePlaces(query: string, apiKey: string): Promise<any[]>
     
     return suggestions.filter(suggestion => suggestion !== null);
   } catch (error) {
-    console.error('Google Places API error:', error);
-    throw error;
+    // Silently fail - don't expose Google Places API errors to users
+    console.error('Google Places API fallback failed');
+    throw error; // Re-throw to be caught by outer handler
   }
 }
 
@@ -179,8 +181,9 @@ export async function GET(request: NextRequest) {
             });
           }
         } catch (googleError) {
-          console.error('Google Places fallback error:', googleError);
-          // If both fail, we'll return empty array
+          // Silently handle Google Places fallback failure
+          // Don't log or expose the error - just continue with empty results
+          console.error('Google Places fallback unavailable');
         }
       }
       

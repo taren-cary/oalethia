@@ -41,6 +41,7 @@ function getClientIP(req) {
 // Middleware
 app.use(cors({
   origin: [
+    'https://oalethia.com',
     'https://oalethia.netlify.app',
     'http://localhost:3001',
   ],

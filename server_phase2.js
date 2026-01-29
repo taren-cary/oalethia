@@ -1034,6 +1034,8 @@ app.post('/api/generate-timeline-anonymous', async (req, res) => {
     const { 
       outcome, 
       context, 
+      availableResources,
+      preferredApproach,
       timeframe, 
       birthDate, 
       birthTime, 

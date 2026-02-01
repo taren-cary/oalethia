@@ -78,7 +78,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
           </h2>
           <p className="text-white/80">
             {mode === 'signup' 
-              ? 'Manifestation is the art of timeline navigation. Create your account to save your cosmic timelines' 
+              ? 'Begin your journey as a timeline navigator. Create your account to save your cosmic timelines' 
               : 'Sign in to access your saved timelines'
             }
           </p>

@@ -84,8 +84,8 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
               Coming Soon
             </p>
             <p className="text-lg text-white/80 max-w-2xl">
-              Transform your dreams into reality with personalized action plans powered by Quantum Astrology. 
-              Get cosmic guidance for your goals with AI-powered manifestation timeline generation.
+            Navigate your quantum reality with precision-guided action plans. 
+            Get AI-powered timeline generation that aligns your goals with optimal cosmic timing.
             </p>
           </div>
 

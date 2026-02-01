@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
 import SubscriptionModal from './SubscriptionModal';
@@ -170,8 +171,17 @@ export default function Navigation() {
       <nav className="fixed top-0 left-0 right-0 z-40 p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="glass-card px-6 py-3">
-            <div className="text-white font-bold text-xl cosmic-text">
-              Oalethia
+            <div className="flex items-center gap-2">
+              <Image
+                src="/assets/oalethialogo-white.svg"
+                alt="Oalethia Logo"
+                width={24}
+                height={24}
+                className="h-5 w-auto"
+              />
+              <div className="text-white font-bold text-xl cosmic-text">
+                Oalethia
+              </div>
             </div>
           </div>
         </div>
@@ -184,8 +194,17 @@ export default function Navigation() {
       <nav className="fixed top-0 left-0 right-0 z-40 p-3 sm:p-4 bg-black/40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="glass-card px-4 py-2 sm:px-6 sm:py-3 hover:bg-white/20 transition-all">
-            <div className="text-white font-bold text-lg sm:text-xl cosmic-text">
-              Oalethia
+            <div className="flex items-center gap-2">
+              <Image
+                src="/assets/oalethialogo-white.svg"
+                alt="Oalethia Logo"
+                width={24}
+                height={24}
+                className="h-5 sm:h-6 w-auto"
+              />
+              <div className="text-white font-bold text-lg sm:text-xl cosmic-text">
+                Oalethia
+              </div>
             </div>
           </Link>
 

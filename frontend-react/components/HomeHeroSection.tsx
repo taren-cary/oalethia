@@ -78,14 +78,13 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
         <div className="text-center lg:text-left space-y-8">
           <div className="space-y-6">
             <h1 className="text-6xl lg:text-7xl font-bold cosmic-text drop-shadow-2xl leading-tight">
-              The only astro-manifestation app you will ever need
+              Reaching Your Goals Just Got Alot Easier
             </h1>
             <p className="text-2xl lg:text-3xl text-white/90 drop-shadow-lg">
               Coming Soon
             </p>
             <p className="text-lg text-white/80 max-w-2xl">
-            Become a master at navigating your reality with precision-guided action plans powered by Quantum Astrology. 
-            Get AI-powered timeline generation that aligns your manifestation with optimal cosmic timing.
+            Become a master at navigating your reality and manifest your goals on autopilot with the help of AI and Quantum Astrology.
             </p>
           </div>
 

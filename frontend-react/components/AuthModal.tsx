@@ -74,7 +74,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
 
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold cosmic-text mb-2">
-            {mode === 'signup' ? 'Join the Quantum Guild' : 'Welcome Back'}
+            {mode === 'signup' ? 'Its Your Turn To Master Reality' : 'Welcome Back'}
           </h2>
           <p className="text-white/80">
             {mode === 'signup' 

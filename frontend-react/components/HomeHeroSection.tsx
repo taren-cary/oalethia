@@ -1,45 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface HomeHeroSectionProps {
   user?: any;
 }
 
 export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/early-access', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (response.ok) {
-        setSubmitted(true);
-      } else {
-        const errorData = await response.json();
-        console.error('Error submitting email:', errorData.error);
-        // You could add error state handling here
-      }
-    } catch (error) {
-      console.error('Error submitting email:', error);
-      // You could add error state handling here
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <section className="min-h-screen flex items-start md:items-center justify-center px-4 pt-28 md:pt-24 pb-16 relative">
@@ -71,6 +39,12 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
               loading="eager"
               sizes="(max-width: 768px) 0px, 650px"
             />
+            {/* Coming Soon Badge */}
+            <div className="absolute top-4 right-4 glass-card px-4 py-2 backdrop-blur-md">
+              <p className="text-white text-sm font-semibold text-center">
+                📱 Mobile App<br/>Coming Soon
+              </p>
+            </div>
           </div>
         </div>
 
@@ -78,55 +52,36 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
         <div className="text-center lg:text-left space-y-8">
           <div className="space-y-6">
             <h1 className="text-6xl lg:text-7xl font-bold cosmic-text drop-shadow-2xl leading-tight">
-              Reaching Your Goals Just Got Alot Easier
+              Reaching Your Goals Just Got A Lot Easier
             </h1>
             <p className="text-lg text-white/80 max-w-2xl">
             Become a master at navigating your reality and manifest your goals on autopilot with the help of AI and Quantum Astrology.
             </p>
-            <p className="text-2xl lg:text-3xl text-white/90 drop-shadow-lg">
-              Coming Soon
-            </p>
           </div>
-
-          {/* Email signup form */}
+          {/* Mobile app coming soon notice - subtle */}
           {!user && (
-            <div className="max-w-md mx-auto lg:mx-0">
-              {!submitted ? (
-                <form onSubmit={handleEmailSubmit} className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email for early access"
-                      className="flex-1 glass-input text-lg px-6 py-4"
-                      required
-                    />
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="glass-button px-8 py-4 text-lg font-semibold whitespace-nowrap hover:bg-white/30 transition-all disabled:opacity-50"
-                    >
-                      {isSubmitting ? 'Joining...' : 'Get Early Access'}
-                    </button>
-                  </div>
-                  <p className="text-white/70 text-sm">
-                    Be the first to experience cosmic manifestation guidance
-                  </p>
-                </form>
-              ) : (
-                <div className="glass-card p-6 text-center">
-                  <div className="text-green-400 text-2xl mb-2">✨</div>
-                  <h3 className="text-white font-semibold text-lg mb-2">
-                    You're on the list!
-                  </h3>
-                  <p className="text-white/80 text-sm">
-                    We'll notify you when Oalethia StarManifest is ready to launch.
-                  </p>
-                </div>
-              )}
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <p className="text-white/60 text-sm text-center lg:text-left">
+                📱 Mobile app coming soon • Use StarManifest™ on web now
+              </p>
             </div>
           )}
+
+          {/* Primary CTA for non-users */}
+          {!user && (
+            <div className="max-w-md mx-auto lg:mx-0 space-y-4">
+              <Link
+                href="/timeline"
+                className="glass-button px-8 py-4 text-xl font-semibold hover:bg-white/30 transition-all inline-block w-full text-center"
+              >
+                Start Using StarManifest™
+              </Link>
+              <p className="text-white/70 text-sm text-center">
+                Plot a course to manifest your goals — free to try
+              </p>
+            </div>
+          )}
+
 
           {/* For logged in users */}
           {user && (

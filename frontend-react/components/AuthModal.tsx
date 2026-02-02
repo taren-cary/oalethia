@@ -74,11 +74,11 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
 
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold cosmic-text mb-2">
-            {mode === 'signup' ? 'Start Mastering Your Reality' : 'Welcome Back'}
+            {mode === 'signup' ? 'Take Command of Your Future' : 'Welcome Back'}
           </h2>
           <p className="text-white/80">
             {mode === 'signup' 
-              ? 'Join the Quantum Guild and chart your course to any goal with quantum precision. Create your account to save your cosmic timelines and begin achieving your desired outcomes.' 
+              ? 'Say goodbye to lack of clarity and failure. Join a community of reality navigators and begin to steer your life towards your desired outcomes.' 
               : 'Sign in to access your saved timelines'
             }
           </p>

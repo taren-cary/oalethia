@@ -78,7 +78,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
           </h2>
           <p className="text-white/80">
             {mode === 'signup' 
-              ? 'Chart your course to any goal with quantum precision. Create your account to save your cosmic timelines and begin achieving your desired outcomes.' 
+              ? 'Join the Quantum Guild and chart your course to any goal with quantum precision. Create your account to save your cosmic timelines and begin achieving your desired outcomes.' 
               : 'Sign in to access your saved timelines'
             }
           </p>

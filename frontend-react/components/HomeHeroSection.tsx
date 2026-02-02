@@ -80,11 +80,11 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
             <h1 className="text-6xl lg:text-7xl font-bold cosmic-text drop-shadow-2xl leading-tight">
               Reaching Your Goals Just Got Alot Easier
             </h1>
-            <p className="text-2xl lg:text-3xl text-white/90 drop-shadow-lg">
-              Coming Soon
-            </p>
             <p className="text-lg text-white/80 max-w-2xl">
             Become a master at navigating your reality and manifest your goals on autopilot with the help of AI and Quantum Astrology.
+            </p>
+            <p className="text-2xl lg:text-3xl text-white/90 drop-shadow-lg">
+              Coming Soon
             </p>
           </div>
 

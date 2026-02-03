@@ -36,7 +36,7 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
         <div className="absolute inset-0 bg-black/60"></div>
       </div>
 
-      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-2 lg:gap-12 items-center relative z-10">
         {/* Left side - iPhone mockup */}
         <div className="flex justify-center lg:justify-start">
           <div className="relative">
@@ -62,7 +62,7 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
         {/* Right side - Content */}
         <div className="text-center lg:text-left space-y-8">
           <div className="space-y-6">
-            <h1 className="text-6xl lg:text-7xl font-bold cosmic-text drop-shadow-2xl leading-tight">
+            <h1 className="text-7xl lg:text-7xl font-bold cosmic-text drop-shadow-2xl leading-tight">
               Reaching Your Goals Just Got A Lot Easier
             </h1>
             <p className="text-lg text-white/80 max-w-2xl">

@@ -13,16 +13,27 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
     <section className="min-h-screen flex items-start md:items-center justify-center px-4 pt-28 md:pt-24 pb-16 relative">
       {/* Background */}
       <div className="absolute inset-0 z-0">
+        {/* Mobile Background */}
         <Image
-          src="/assets/home-hero-background.svg"
+          src="/assets/home-hero-backgroundmobile.svg"
           alt="Cosmic background"
           fill
-          className="object-cover"
+          className="object-cover md:hidden"
           priority
           loading="eager"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        {/* Desktop Background */}
+        <Image
+          src="/assets/home-hero-background2.svg"
+          alt="Cosmic background"
+          fill
+          className="object-cover hidden md:block"
+          priority
+          loading="eager"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-black/60"></div>
       </div>
 
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">

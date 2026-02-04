@@ -88,7 +88,7 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
                 Start Using StarManifest™
               </Link>
               <p className="text-white/70 text-sm text-center">
-                Plot a course to manifest your goals — free to try
+                Plot a course to manifest your goals in a few easy steps — free to try
               </p>
             </div>
           )}

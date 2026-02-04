@@ -344,7 +344,7 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
             Oalethia StarManifest™
           </h1>
           <p className="text-2xl text-white/90 drop-shadow-lg">
-            Your Personalized Manifestation Timeline
+            Your Goal Is The Destination, Your Intention Is The Steering Wheel
           </p>
         </div>
 

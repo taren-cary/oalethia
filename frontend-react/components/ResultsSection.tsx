@@ -197,6 +197,21 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
               window.dispatchEvent(new CustomEvent('refresh-points'));
             }
           }
+          
+          // Check for level up
+          if (data.levelUp && data.levelUp.newLevel) {
+            // Trigger level-up modal
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('level-up', {
+                detail: {
+                  newLevel: data.levelUp.newLevel,
+                  levelName: data.levelUp.levelName,
+                  previousLevel: data.levelUp.previousLevel
+                }
+              }));
+            }
+          }
+          
           // If already affirmed, don't change the button state
           if (data.already_affirmed) {
             return;

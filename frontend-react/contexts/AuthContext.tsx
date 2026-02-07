@@ -10,7 +10,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, username: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   isFirstTimeUser: boolean;
@@ -97,15 +97,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, username: string) => {
+    // First, check if username is available
+    const { data: existingUser, error: checkError } = await supabase
+      .from('user_profiles')
+      .select('username')
+      .eq('username', username.toLowerCase().trim())
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 is "not found" which is what we want
+      return { error: { message: 'Error checking username availability' } };
+    }
+
+    if (existingUser) {
+      return { error: { message: 'Username is already taken' } };
+    }
+
+    // Create auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: undefined, // Disable email verification for now
       }
     });
-    return { error };
+
+    if (authError) {
+      return { error: authError };
+    }
+
+    // If signup successful, save username to user_profiles
+    if (authData.user) {
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: authData.user.id,
+          username: username.toLowerCase().trim()
+        });
+
+      if (profileError) {
+        // If profile creation fails, we should handle it
+        // For now, we'll log it but still return success since auth user was created
+        console.error('Error saving username:', profileError);
+        // Could optionally delete the auth user here, but that might be too aggressive
+      }
+    }
+
+    return { error: null };
   };
 
   const signIn = async (email: string, password: string) => {

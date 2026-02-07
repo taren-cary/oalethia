@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
 import SubscriptionModal from './SubscriptionModal';
+import LevelDisplay from './LevelDisplay';
+import LevelUpModal from './LevelUpModal';
 import Link from 'next/link';
 
 export default function Navigation() {
@@ -17,6 +19,8 @@ export default function Navigation() {
   const [userSubscription, setUserSubscription] = useState<any>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [subscriptionModalType, setSubscriptionModalType] = useState<'subscription' | 'credits'>('subscription');
+  const [username, setUsername] = useState<string | null>(null);
+  const [levelUpData, setLevelUpData] = useState<{ newLevel: number; levelName: string; previousLevel: number } | null>(null);
   const { user, signOut, loading, session } = useAuth();
 
   const handleSignOut = async () => {
@@ -65,11 +69,14 @@ export default function Navigation() {
     }
   };
 
-  // Fetch user points and subscription when user is authenticated
+  // Fetch user points, subscription, and username when user is authenticated
   useEffect(() => {
     if (user && session) {
       fetchUserPoints();
       fetchUserSubscription();
+      fetchUsername();
+    } else {
+      setUsername(null);
     }
   }, [user, session]);
 
@@ -100,9 +107,25 @@ export default function Navigation() {
       }
     };
 
+    const handleLevelUp = (event: CustomEvent) => {
+      const levelUpInfo = event.detail;
+      if (levelUpInfo) {
+        setLevelUpData({
+          newLevel: levelUpInfo.newLevel,
+          levelName: levelUpInfo.levelName,
+          previousLevel: levelUpInfo.previousLevel
+        });
+        // Also refresh points to update the display
+        fetchUserPoints();
+      }
+    };
+
     window.addEventListener('refresh-points', handleRefreshPoints);
+    window.addEventListener('level-up', handleLevelUp as EventListener);
+    
     return () => {
       window.removeEventListener('refresh-points', handleRefreshPoints);
+      window.removeEventListener('level-up', handleLevelUp as EventListener);
     };
   }, [user, session]);
 
@@ -166,6 +189,28 @@ export default function Navigation() {
     }
   };
 
+  const fetchUsername = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user-username`, {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsername(data.username || null);
+      } else {
+        // If no username found, fall back to email
+        setUsername(user?.email?.split('@')[0] || null);
+      }
+    } catch (error) {
+      console.error('Error fetching username:', error);
+      // Fall back to email if fetch fails
+      setUsername(user?.email?.split('@')[0] || null);
+    }
+  };
+
   if (loading) {
     return (
       <nav className="fixed top-0 left-0 right-0 z-40 p-4">
@@ -216,6 +261,12 @@ export default function Navigation() {
             >
               StarManifest™ Generator
             </Link>
+            <Link 
+              href="/leaderboard" 
+              className="glass-button text-sm"
+            >
+              Leaderboard
+            </Link>
             {user ? (
               <>
                 <Link 
@@ -231,7 +282,7 @@ export default function Navigation() {
                 >
                   <div className="glass-card px-4 py-2 cursor-pointer hover:bg-white/20 transition-all">
                     <span className="text-white text-sm">
-                      {user.email}
+                      {username || user.email?.split('@')[0] || 'User'}
                     </span>
                   </div>
                   
@@ -244,6 +295,11 @@ export default function Navigation() {
                         className="absolute top-full right-0 mt-2 glass-card p-4 min-w-[200px] z-50"
                       >
                       <div className="text-white">
+                        {/* Level Display */}
+                        <div className="mb-3">
+                          <LevelDisplay />
+                        </div>
+                        
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"></div>
                           <span className="font-bold text-lg">{userPoints}</span>
@@ -355,6 +411,13 @@ export default function Navigation() {
               >
                 StarManifest™ Generator
               </Link>
+              <Link
+                href="/leaderboard"
+                className="glass-button w-full text-sm text-center"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Leaderboard
+              </Link>
 
               {user ? (
                 <>
@@ -420,6 +483,14 @@ export default function Navigation() {
         isOpen={showSubscriptionModal}
         onClose={() => setShowSubscriptionModal(false)}
         type={subscriptionModalType}
+      />
+      
+      <LevelUpModal
+        isOpen={!!levelUpData}
+        onClose={() => setLevelUpData(null)}
+        newLevel={levelUpData?.newLevel || 1}
+        levelName={levelUpData?.levelName || ''}
+        previousLevel={levelUpData?.previousLevel || 1}
       />
     </>
   );

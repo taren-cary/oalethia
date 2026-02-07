@@ -94,6 +94,100 @@ const POINTS_SYSTEM = {
   milestone_100_actions: 250
 };
 
+// Achievement levels configuration
+const ACHIEVEMENT_LEVELS = [
+  { level: 1, name: "Initiate of the Compass", points: 0 },
+  { level: 2, name: "Orbital Apprentice", points: 25 },
+  { level: 3, name: "Bearer of Intent", points: 75 },
+  { level: 4, name: "Awakened Navigator", points: 200 },
+  { level: 5, name: "Celestial Adept", points: 500 },
+  { level: 6, name: "Stellar Alchemist", points: 1200 },
+  { level: 7, name: "Master of Arrival", points: 2500 },
+  { level: 8, name: "Sage of the Void", points: 5000 },
+  { level: 9, name: "Solar Oracle", points: 10000 },
+  { level: 10, name: "Quantum Starseed", points: 20000 },
+  { level: 11, name: "Cosmic Admiral", points: 40000 },
+  { level: 12, name: "Eternal Sovereign", points: 75000 }
+];
+
+// Helper function to calculate user level from lifetime points
+function calculateLevel(lifetimePoints) {
+  // Start from highest level and work down
+  for (let i = ACHIEVEMENT_LEVELS.length - 1; i >= 0; i--) {
+    if (lifetimePoints >= ACHIEVEMENT_LEVELS[i].points) {
+      return ACHIEVEMENT_LEVELS[i];
+    }
+  }
+  // Fallback to level 1
+  return ACHIEVEMENT_LEVELS[0];
+}
+
+// Helper function to check and update user level
+async function checkAndUpdateLevel(userId, lifetimePoints) {
+  try {
+    const currentLevelData = calculateLevel(lifetimePoints);
+    
+    // Get current level from database
+    const { data: userPoints, error: fetchError } = await supabase
+      .from('user_points')
+      .select('current_level')
+      .eq('user_id', userId)
+      .single();
+    
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error fetching user level:', fetchError);
+      return { leveledUp: false };
+    }
+    
+    const currentLevel = userPoints?.current_level || 1;
+    
+    // If user leveled up
+    if (currentLevelData.level > currentLevel) {
+      // Update user_points table
+      const { error: updateError } = await supabase
+        .from('user_points')
+        .update({
+          current_level: currentLevelData.level,
+          level_achieved_at: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      
+      if (updateError) {
+        console.error('Error updating user level:', updateError);
+        return { leveledUp: false };
+      }
+      
+      // Record achievement (use upsert to handle duplicates gracefully)
+      const { error: achievementError } = await supabase
+        .from('user_achievements')
+        .upsert({
+          user_id: userId,
+          level: currentLevelData.level,
+          achieved_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,level'
+        });
+      
+      if (achievementError) {
+        console.error('Error recording achievement:', achievementError);
+        // Don't fail the whole operation if achievement recording fails
+      }
+      
+      return {
+        leveledUp: true,
+        newLevel: currentLevelData.level,
+        levelName: currentLevelData.name,
+        previousLevel: currentLevel
+      };
+    }
+    
+    return { leveledUp: false };
+  } catch (error) {
+    console.error('Error in checkAndUpdateLevel:', error);
+    return { leveledUp: false };
+  }
+}
+
 // ==============================================
 // RATE LIMITING MIDDLEWARE
 // ==============================================
@@ -1145,13 +1239,18 @@ app.post('/api/affirm', requireAuth, async (req, res) => {
     if (generation_id.startsWith('temp_')) {
       // For unsaved timelines, just award points without database tracking
       const pointsAwarded = 5;
-      await awardPoints(req.user.id, pointsAwarded, 'daily_affirmation', `temp_${today}`);
+      const levelUpResult = await awardPoints(req.user.id, pointsAwarded, 'daily_affirmation', `temp_${today}`);
       
       return res.json({ 
         success: true, 
         message: 'Daily affirmation recorded! (Timeline not saved yet)',
         points_awarded: pointsAwarded,
-        already_affirmed: false
+        already_affirmed: false,
+        levelUp: levelUpResult?.leveledUp ? {
+          newLevel: levelUpResult.newLevel,
+          levelName: levelUpResult.levelName,
+          previousLevel: levelUpResult.previousLevel
+        } : null
       });
     }
 
@@ -1192,13 +1291,18 @@ app.post('/api/affirm', requireAuth, async (req, res) => {
         }
 
         // Award points
-        await awardPoints(req.user.id, pointsAwarded, 'daily_affirmation', `${generation_id}_${today}`);
+        const levelUpResult = await awardPoints(req.user.id, pointsAwarded, 'daily_affirmation', `${generation_id}_${today}`);
 
         return res.json({ 
           success: true, 
           message: 'Daily affirmation recorded!',
           points_awarded: pointsAwarded,
-          already_affirmed: false
+          already_affirmed: false,
+          levelUp: levelUpResult?.leveledUp ? {
+            newLevel: levelUpResult.newLevel,
+            levelName: levelUpResult.levelName,
+            previousLevel: levelUpResult.previousLevel
+          } : null
         });
       }
     }
@@ -1227,13 +1331,18 @@ app.post('/api/affirm', requireAuth, async (req, res) => {
     }
 
     // Award points
-    await awardPoints(req.user.id, pointsAwarded, 'daily_affirmation', `${generation_id}_${today}`);
+    const levelUpResult = await awardPoints(req.user.id, pointsAwarded, 'daily_affirmation', `${generation_id}_${today}`);
 
     res.json({ 
       success: true, 
       message: 'Daily affirmation recorded!',
       points_awarded: pointsAwarded,
-      already_affirmed: false
+      already_affirmed: false,
+      levelUp: levelUpResult?.leveledUp ? {
+        newLevel: levelUpResult.newLevel,
+        levelName: levelUpResult.levelName,
+        previousLevel: levelUpResult.previousLevel
+      } : null
     });
 
   } catch (error) {
@@ -1242,7 +1351,8 @@ app.post('/api/affirm', requireAuth, async (req, res) => {
   }
 });
 
-// Helper function to award points
+// Helper function to award points and check for level ups
+// Returns: { leveledUp: boolean, newLevel?: number, levelName?: string, previousLevel?: number } or null on error
 async function awardPoints(userId, points, source, description) {
   try {
     // Create points transaction
@@ -1258,10 +1368,11 @@ async function awardPoints(userId, points, source, description) {
 
     if (pointsError) {
       console.error('Error creating points transaction:', pointsError);
-      return;
+      return null;
     }
 
     // Update user's total points
+    let updatedLifetimePoints = 0;
     try {
       // First try to use the SQL function
       const { error: updateError } = await supabase.rpc('increment_user_points', {
@@ -1286,33 +1397,59 @@ async function awardPoints(userId, points, source, description) {
             .insert({
               user_id: userId,
               total_points: points,
-              lifetime_points: points
+              lifetime_points: points,
+              current_level: 1 // Initialize with level 1
             });
 
           if (insertError) {
             console.error('Error creating user points record:', insertError);
+            return null;
           }
+          updatedLifetimePoints = points;
         } else if (!fetchError) {
           // User exists, update their points
+          updatedLifetimePoints = (existingPoints.lifetime_points || 0) + points;
           const { error: updateError2 } = await supabase
             .from('user_points')
             .update({
               total_points: (existingPoints.total_points || 0) + points,
-              lifetime_points: (existingPoints.lifetime_points || 0) + points,
+              lifetime_points: updatedLifetimePoints,
               updated_at: new Date().toISOString()
             })
             .eq('user_id', userId);
 
           if (updateError2) {
             console.error('Error updating user points manually:', updateError2);
+            return null;
           }
         }
+      } else {
+        // SQL function succeeded, fetch updated points to check for level up
+        const { data: updatedPoints, error: fetchError } = await supabase
+          .from('user_points')
+          .select('lifetime_points')
+          .eq('user_id', userId)
+          .single();
+        
+        if (!fetchError && updatedPoints) {
+          updatedLifetimePoints = updatedPoints.lifetime_points || 0;
+        }
       }
+
+      // Check for level up after points are updated
+      if (updatedLifetimePoints > 0) {
+        const levelUpResult = await checkAndUpdateLevel(userId, updatedLifetimePoints);
+        return levelUpResult;
+      }
+
+      return { leveledUp: false };
     } catch (error) {
       console.error('Error in points update process:', error);
+      return null;
     }
   } catch (error) {
     console.error('Error in points award process:', error);
+    return null;
   }
 }
 
@@ -1459,6 +1596,128 @@ app.get('/api/user-points', requireAuth, async (req, res) => {
   }
 });
 
+// API endpoint to get user username
+app.get('/api/user-username', requireAuth, async (req, res) => {
+  try {
+    const { data: profile, error } = await supabase
+      .from('user_profiles')
+      .select('username')
+      .eq('user_id', req.user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+    
+    res.json({ 
+      username: profile?.username || null
+    });
+  } catch (error) {
+    console.error('Error fetching username:', error);
+    res.status(500).json({ error: 'Failed to fetch username' });
+  }
+});
+
+// API endpoint to get user level and progress
+app.get('/api/user-level', requireAuth, async (req, res) => {
+  try {
+    const { data: userPoints, error } = await supabase
+      .from('user_points')
+      .select('total_points, lifetime_points, current_level')
+      .eq('user_id', req.user.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+    
+    const lifetimePoints = userPoints?.lifetime_points || 0;
+    const currentLevelData = calculateLevel(lifetimePoints);
+    const currentLevel = userPoints?.current_level || 1;
+    
+    // Find next level
+    const nextLevelIndex = ACHIEVEMENT_LEVELS.findIndex(l => l.level === currentLevelData.level + 1);
+    const nextLevel = nextLevelIndex >= 0 ? ACHIEVEMENT_LEVELS[nextLevelIndex] : null;
+    
+    // Calculate progress
+    const pointsForCurrentLevel = currentLevelData.points;
+    const pointsForNextLevel = nextLevel ? nextLevel.points : currentLevelData.points;
+    const pointsInCurrentLevel = lifetimePoints - pointsForCurrentLevel;
+    const pointsNeededForNext = pointsForNextLevel - pointsForCurrentLevel;
+    const progressPercent = nextLevel 
+      ? Math.min(100, (pointsInCurrentLevel / pointsNeededForNext) * 100)
+      : 100;
+    
+    res.json({
+      level: currentLevelData.level,
+      levelName: currentLevelData.name,
+      lifetimePoints,
+      currentPoints: lifetimePoints,
+      pointsForNextLevel: nextLevel ? nextLevel.points : null,
+      pointsNeeded: nextLevel ? pointsForNextLevel - lifetimePoints : 0,
+      progressPercent: Math.round(progressPercent * 100) / 100, // Round to 2 decimal places
+      isMaxLevel: !nextLevel
+    });
+  } catch (error) {
+    console.error('Error fetching user level:', error);
+    res.status(500).json({ error: 'Failed to fetch user level' });
+  }
+});
+
+// API endpoint to get leaderboard
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 100;
+    
+    // Get top users by lifetime points with their current level
+    const { data: topUsers, error } = await supabase
+      .from('user_points')
+      .select(`
+        user_id,
+        lifetime_points,
+        current_level
+      `)
+      .order('lifetime_points', { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    
+    // Get usernames for all users in one query
+    const userIds = topUsers.map(u => u.user_id);
+    const { data: profiles } = await supabase
+      .from('user_profiles')
+      .select('user_id, username')
+      .in('user_id', userIds);
+    
+    // Create a map of user_id to username
+    const usernameMap = new Map();
+    if (profiles) {
+      profiles.forEach(profile => {
+        usernameMap.set(profile.user_id, profile.username);
+      });
+    }
+    
+    // Format response with username
+    const leaderboard = topUsers.map((user, index) => {
+      const levelData = calculateLevel(user.lifetime_points || 0);
+      const username = usernameMap.get(user.user_id) || `user_${user.user_id.substring(0, 8)}`;
+      return {
+        rank: index + 1,
+        userId: user.user_id,
+        username: username,
+        lifetimePoints: user.lifetime_points || 0,
+        level: user.current_level || levelData.level,
+        levelName: levelData.name
+      };
+    });
+    
+    res.json(leaderboard);
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
+});
+
 // ==============================================
 // MODIFIED GENERATION ENDPOINT
 // ==============================================
@@ -1575,24 +1834,13 @@ app.post('/api/generate-timeline', requireAuth, timelineGenerationLimiter, async
       .single();
 
     if (pointsError && pointsError.code === 'PGRST116') {
-      // First generation - award bonus points
-      await supabase
-        .from('points_transactions')
-        .insert({
-          user_id: req.user.id,
-          points: POINTS_SYSTEM.first_generation,
-          type: 'earned',
-          source: 'first_generation',
-          description: 'First timeline generation'
-        });
-
-      await supabase
-        .from('user_points')
-        .insert({
-          user_id: req.user.id,
-          total_points: POINTS_SYSTEM.first_generation,
-          lifetime_points: POINTS_SYSTEM.first_generation
-        });
+      // First generation - award bonus points using awardPoints helper (handles level ups)
+      await awardPoints(
+        req.user.id, 
+        POINTS_SYSTEM.first_generation, 
+        'first_generation', 
+        'First timeline generation'
+      );
     }
 
     res.json({
@@ -1663,43 +1911,28 @@ app.post('/api/action-progress', requireAuth, async (req, res) => {
     if (progressError) throw progressError;
 
     let pointsEarned = 0;
+    let levelUpResult = null;
     if (completed) {
       pointsEarned = POINTS_SYSTEM.action_completed;
       
-      // Award points
-      await supabase
-        .from('points_transactions')
-        .insert({
-          user_id: req.user.id,
-          points: pointsEarned,
-          type: 'earned',
-          source: 'action_completed',
-          description: `Completed action #${actionIndex + 1}`
-        });
-
-      // Update user points
-      const { data: userPoints, error: pointsError } = await supabase
-        .from('user_points')
-        .select('total_points, lifetime_points')
-        .eq('user_id', req.user.id)
-        .single();
-
-      if (pointsError && pointsError.code !== 'PGRST116') {
-        throw pointsError;
-      }
-
-      if (userPoints) {
-        await supabase
-          .from('user_points')
-          .update({
-            total_points: userPoints.total_points + pointsEarned,
-            lifetime_points: userPoints.lifetime_points + pointsEarned
-          })
-          .eq('user_id', req.user.id);
-      }
+      // Award points using the awardPoints helper (which handles level ups)
+      levelUpResult = await awardPoints(
+        req.user.id, 
+        pointsEarned, 
+        'action_completed', 
+        `Completed action #${actionIndex + 1}`
+      );
     }
 
-    res.json({ success: true, pointsEarned });
+    res.json({ 
+      success: true, 
+      pointsEarned,
+      levelUp: levelUpResult?.leveledUp ? {
+        newLevel: levelUpResult.newLevel,
+        levelName: levelUpResult.levelName,
+        previousLevel: levelUpResult.previousLevel
+      } : null
+    });
   } catch (error) {
     console.error('Update action progress error:', error);
     res.status(500).json({ error: 'Failed to update action progress' });

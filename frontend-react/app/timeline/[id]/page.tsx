@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import Navigation from '@/components/Navigation';
 import CountdownTimer from '@/components/CountdownTimer';
+import SubscriptionModal from '@/components/SubscriptionModal';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -34,6 +35,9 @@ export default function TimelineViewPage() {
   const [currentAffirmationIndex, setCurrentAffirmationIndex] = useState(0);
   const [affirmationConfirmed, setAffirmationConfirmed] = useState(false);
   const [expandedActions, setExpandedActions] = useState<Set<number>>(new Set());
+  const [userSubscription, setUserSubscription] = useState<any>(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionModalType, setSubscriptionModalType] = useState<'subscription' | 'credits'>('subscription');
   const params = useParams();
 
   useEffect(() => {
@@ -49,6 +53,13 @@ export default function TimelineViewPage() {
       loadTodaysAffirmation();
     }
   }, [user, params.id, timeline]);
+
+  // Fetch user subscription status
+  useEffect(() => {
+    if (user && session) {
+      fetchUserSubscription();
+    }
+  }, [user, session]);
 
   const fetchTimeline = async () => {
     if (!user || !params.id) return;
@@ -127,6 +138,31 @@ export default function TimelineViewPage() {
     }
   };
 
+  const fetchUserSubscription = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user-subscription`, {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserSubscription(data);
+      } else if (response.status === 401 || response.status === 403) {
+        console.warn('Unauthorized: Session may have expired');
+        setUserSubscription({ tier: { name: 'free' }, isFree: true, status: 'active' });
+      } else if (response.status === 500) {
+        console.error('Server error fetching subscription. Using default free tier.');
+        setUserSubscription({ tier: { name: 'free' }, isFree: true, status: 'active' });
+      }
+    } catch (error: any) {
+      console.error('Error fetching subscription:', error);
+      if (error.message?.includes('fetch') || error.name === 'TypeError') {
+        setUserSubscription({ tier: { name: 'free' }, isFree: true, status: 'active' });
+      }
+    }
+  };
+
   const toggleAction = (index: number) => {
     const newCompleted = completedActions.includes(index)
       ? completedActions.filter(i => i !== index)
@@ -189,6 +225,21 @@ export default function TimelineViewPage() {
               window.dispatchEvent(new CustomEvent('refresh-points'));
             }
           }
+          
+          // Check for level up
+          if (data.levelUp && data.levelUp.newLevel) {
+            // Trigger level-up modal
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('level-up', {
+                detail: {
+                  newLevel: data.levelUp.newLevel,
+                  levelName: data.levelUp.levelName,
+                  previousLevel: data.levelUp.previousLevel
+                }
+              }));
+            }
+          }
+          
           // If already affirmed, don't change the button state
           if (data.already_affirmed) {
             return;
@@ -339,6 +390,11 @@ export default function TimelineViewPage() {
   const nextActionOriginalIndex = nextAction ? timeline.actions.indexOf(nextAction) : -1;
 
   const progress = visibleActions.length > 0 ? Math.round((completedActions.length / visibleActions.length) * 100) : 0;
+
+  // Determine if user can see all actions
+  const canSeeAllActions = userSubscription?.tier?.can_see_all_actions || false;
+  const isAnonymous = !user;
+  const isFreeUser = user && (userSubscription?.isFree === true || userSubscription?.tier?.name === 'free');
 
   return (
     <main className="min-h-screen relative">
@@ -592,11 +648,12 @@ export default function TimelineViewPage() {
               if (isNextAction) return null; // Skip the next action as it's shown above
               
               const isExpanded = expandedActions.has(originalIndex);
+              const shouldBlur = !canSeeAllActions && !isNextAction && (isFreeUser || isAnonymous);
               
               return (
                 <div
                   key={originalIndex}
-                  className={`glass-card p-6 transition-all duration-300 ${
+                  className={`glass-card p-6 transition-all duration-300 relative ${
                     completedActions.includes(originalIndex) ? 'opacity-60 bg-white/5' : 'hover:bg-white/15'
                   }`}
                 >
@@ -753,6 +810,53 @@ export default function TimelineViewPage() {
                       Skip
                     </button>
                   </div>
+                  
+                  {/* Blur overlay for restricted actions */}
+                  {shouldBlur && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg z-10">
+                      <div className="text-center p-6">
+                        <div className="text-4xl mb-3">🔒</div>
+                        <p className="text-white font-semibold mb-2">Premium Feature</p>
+                        <p className="text-white/80 text-sm mb-4">
+                          {isFreeUser ? 'Upgrade to Premium to see all actions' : 'Sign up to see all actions'}
+                        </p>
+                        <div className="flex gap-2 justify-center">
+                          {isFreeUser ? (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setSubscriptionModalType('subscription');
+                                  setShowSubscriptionModal(true);
+                                }}
+                                className="glass-button bg-purple-500/30 border-purple-400/50 hover:bg-purple-500/40 text-sm py-2 px-4"
+                              >
+                                Upgrade to Premium
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setSubscriptionModalType('credits');
+                                  setShowSubscriptionModal(true);
+                                }}
+                                className="glass-button bg-blue-500/30 border-blue-400/50 hover:bg-blue-500/40 text-sm py-2 px-4"
+                              >
+                                Buy Credits
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                // Handle sign up - redirect to home
+                                window.location.href = '/';
+                              }}
+                              className="glass-button bg-purple-500/30 border-purple-400/50 hover:bg-purple-500/40 text-sm py-2 px-4"
+                            >
+                              Sign Up
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -765,6 +869,13 @@ export default function TimelineViewPage() {
           </div>
         </div>
       </div>
+      
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+        type={subscriptionModalType}
+      />
     </main>
   );
 }

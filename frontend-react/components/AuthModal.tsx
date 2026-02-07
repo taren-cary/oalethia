@@ -13,6 +13,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -27,21 +28,36 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
     setSuccess('');
 
     try {
-      const { error } = mode === 'signup' 
-        ? await signUp(email, password)
-        : await signIn(email, password);
-
-      if (error) {
-        setError(error.message);
-      } else {
-        if (mode === 'signup') {
+      if (mode === 'signup') {
+        // Validate username for signup
+        if (!username || username.trim().length < 3) {
+          setError('Username must be at least 3 characters long');
+          setLoading(false);
+          return;
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+          setError('Username can only contain letters, numbers, and underscores');
+          setLoading(false);
+          return;
+        }
+        
+        const { error } = await signUp(email, password, username);
+        if (error) {
+          setError(error.message);
+        } else {
           setSuccess('Account created successfully! You can now sign in.');
           setTimeout(() => {
             onModeChange('signin');
             setSuccess('');
             setEmail('');
             setPassword('');
+            setUsername('');
           }, 2000);
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          setError(error.message);
         } else {
           onClose();
           setEmail('');
@@ -78,13 +94,33 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
           </h2>
           <p className="text-white/80">
             {mode === 'signup' 
-              ? 'Join a community of reality navigators that dont believe in taking the hard route, and steer your life towards your desired outcomes.' 
+              ? 'Join a community of reality navigators who dont believe in taking the hard route, and steer your life towards your desired outcomes.' 
               : 'Sign in to access your saved timelines'
             }
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'signup' && (
+            <div>
+              <label className="block text-white font-semibold mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().trim())}
+                className="glass-input w-full"
+                placeholder="choose_your_username"
+                required
+                minLength={3}
+                maxLength={20}
+                pattern="[a-zA-Z0-9_]+"
+                title="Username can only contain letters, numbers, and underscores"
+              />
+            </div>
+          )}
+          
           <div>
             <label className="block text-white font-semibold mb-2">
               Email

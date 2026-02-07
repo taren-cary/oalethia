@@ -105,13 +105,20 @@ const generateFakeLeaderboard = (): LeaderboardEntry[] => {
 export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [useFakeData, setUseFakeData] = useState(false);
+  const [useFakeData, setUseFakeData] = useState(true);
 
   useEffect(() => {
     fetchLeaderboard();
   }, []);
 
   const fetchLeaderboard = async () => {
+    // Force fake data for now - will phase in real users later
+    setUseFakeData(true);
+    setLeaderboard(generateFakeLeaderboard());
+    setLoading(false);
+    
+    // Commented out API call - uncomment when ready to phase in real users
+    /*
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/leaderboard?limit=25`);
       if (response.ok) {
@@ -145,6 +152,7 @@ export default function LeaderboardPage() {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   return (
@@ -157,7 +165,7 @@ export default function LeaderboardPage() {
               Leaderboard
             </h1>
             <p className="text-white/70 text-lg">
-            Those Who Navigated the Odds & Reached Their Destination
+            Those Who Navigated The Odds & Reached Their Destination
             </p>
             {useFakeData && (
               <p className="text-white/50 text-sm mt-2">

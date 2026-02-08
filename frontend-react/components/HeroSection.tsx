@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import DragSubmitSlider from './DragSubmitSlider';
 import CosmicLoadingSpinner from './CosmicLoadingSpinner';
 import SubscriptionModal from './SubscriptionModal';
@@ -357,7 +358,10 @@ export default function HeroSection({ onSubmit, loading, error, user }: HeroSect
                 <div>
                   <h3 className="text-white font-semibold text-lg mb-2">Outmaneuver The Odds With Perfect Intention & Perfect Timing</h3>
                   <p className="text-white/80 text-sm mb-3">
-                    At each moment, your mind is in a certain psychic state or configuration i.e. you as a CEO, you as a millionaire, you as a parent etc. These states come with an arrow of time connecting the way you interpret the past, your feelings in the present moment, and your expectations of the future. When you intentionally choose to be in a certain state, you are changing the trajectory of your future or steering it in another direction. Based on your birth chart and your current goals, there are times when these states are easier for you to reach. Our AI analyzes your birth chart and creates a step-by-step timeline of actions and affirmations timed to optimal cosmic moments, to help you navigate your reality and manifest your goals.
+                    At each moment, your mind is in a certain psychic state or configuration i.e. you as a CEO, you as a millionaire, you as a parent etc. These states come with an arrow of time connecting the way you interpret the past, your feelings in the present moment, and your expectations of the future. When you intentionally choose to be in a certain state, you are changing the trajectory of your future or steering it in another direction. Based on your birth chart and your current goals, there are times when these states are easier for you to reach. Our AI analyzes your birth chart and creates a step-by-step timeline of actions and affirmations timed to optimal cosmic moments, to help you navigate your reality and manifest your goals.{' '}
+                    <Link href="/quantum-astrology" className="text-blue-300 hover:text-blue-200 underline font-medium">
+                      Learn More
+                    </Link>
                   </p>
                   <div className="flex flex-wrap gap-2 text-xs">
                     <span className="bg-blue-500/30 text-blue-200 px-2 py-1 rounded">🎯 Personalized Actions</span>

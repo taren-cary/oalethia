@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Oalethia StarManifest™",
-  description: "Your Personalized Action Plan Aligned to the Stars",
+  title: "Oalethia",
+  description: "The only manifestation app you will ever need.",
 };
 
 export const viewport: Viewport = {

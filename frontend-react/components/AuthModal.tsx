@@ -45,14 +45,22 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
         if (error) {
           setError(error.message);
         } else {
-          setSuccess('Account created successfully! You can now sign in.');
-          setTimeout(() => {
-            onModeChange('signin');
-            setSuccess('');
+          // Automatically sign in the user after successful signup
+          setSuccess('Account created successfully! Signing you in...');
+          const signInResult = await signIn(email, password);
+          if (signInResult.error) {
+            setError('Account created but sign in failed. Please try signing in manually.');
+            setTimeout(() => {
+              onModeChange('signin');
+              setSuccess('');
+            }, 2000);
+          } else {
+            // Successfully signed in - close modal
+            onClose();
             setEmail('');
             setPassword('');
             setUsername('');
-          }, 2000);
+          }
         }
       } else {
         const { error } = await signIn(email, password);

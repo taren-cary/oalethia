@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import WelcomeBadgeModal from './WelcomeBadgeModal';
 
 interface WelcomeModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showWelcomeBadge, setShowWelcomeBadge] = useState(false);
   const { user, setFirstTimeUser } = useAuth();
 
   if (!isOpen || !user) return null;
@@ -157,7 +159,8 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       }
 
       setFirstTimeUser(false);
-      onClose();
+      // Show welcome badge modal instead of closing immediately
+      setShowWelcomeBadge(true);
     } catch (err: any) {
       setError(err.message || 'Failed to save birth information');
     } finally {
@@ -273,6 +276,15 @@ export default function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           </p>
         </div>
       </div>
+
+      {/* Welcome Badge Modal */}
+      <WelcomeBadgeModal
+        isOpen={showWelcomeBadge}
+        onClose={() => {
+          setShowWelcomeBadge(false);
+          onClose();
+        }}
+      />
     </div>
   );
 }

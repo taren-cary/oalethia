@@ -428,6 +428,69 @@ export default function Navigation() {
                   >
                     My Timelines
                   </Link>
+                  
+                  {/* User Info Section - Points and Badge */}
+                  <div className="glass-card p-4 space-y-3">
+                    {/* Level Display */}
+                    <div>
+                      <LevelDisplay />
+                    </div>
+                    
+                    {/* Points Display */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"></div>
+                      <span className="font-bold text-lg text-white">{userPoints}</span>
+                      <span className="text-white/70 text-sm">points</span>
+                    </div>
+                    <div className="text-white/60 text-xs">
+                      Earn points by affirming your daily affirmations
+                    </div>
+                    <div className="pt-2 border-t border-white/20">
+                      <div className="text-white/80 text-xs">
+                        💫 5 points per timeline affirmation
+                      </div>
+                    </div>
+                    
+                    {/* Subscription Options for Free Users */}
+                    {(userSubscription?.isFree === true || userSubscription?.tier?.name === 'free') && (
+                      <div className="pt-3 space-y-2">
+                        <button
+                          onClick={() => {
+                            setSubscriptionModalType('subscription');
+                            setShowSubscriptionModal(true);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full glass-button bg-purple-500/30 border-purple-400/50 hover:bg-purple-500/40 text-sm py-2"
+                        >
+                          Upgrade
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSubscriptionModalType('credits');
+                            setShowSubscriptionModal(true);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full glass-button bg-blue-500/30 border-blue-400/50 hover:bg-blue-500/40 text-sm py-2"
+                        >
+                          Buy Credits
+                        </button>
+                      </div>
+                    )}
+                    {userSubscription && userSubscription.tier?.name === 'premium' && !userSubscription.isFree && (
+                      <div className="pt-3">
+                        <button
+                          onClick={() => {
+                            handleManageSubscription();
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full glass-button bg-green-500/30 border-green-400/50 hover:bg-green-500/40 text-sm py-2"
+                        >
+                          Manage Subscription
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);

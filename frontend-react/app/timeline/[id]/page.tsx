@@ -813,7 +813,7 @@ export default function TimelineViewPage() {
                   
                   {/* Blur overlay for restricted actions */}
                   {shouldBlur && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-lg z-10">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-xl rounded-lg z-10">
                       <div className="text-center p-6">
                         <div className="text-4xl mb-3">🔒</div>
                         <p className="text-white font-semibold mb-2">Premium Feature</p>

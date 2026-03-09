@@ -16,13 +16,13 @@ export default function TermsOfService() {
           
           <div className="glass-card p-8 space-y-6 text-white/90">
             <p className="text-sm text-white/70 mb-6">
-              Last updated: January 2025
+              Last updated: March 2026
             </p>
 
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">1. Acceptance of Terms</h2>
               <p className="mb-4">
-                By accessing and using Oalethia StarManifest™ ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                By accessing or using the Oalethia StarManifest™ website or mobile applications for iOS or Android (together, the &quot;Service&quot;), you accept and agree to be bound by these Terms of Service. If you do not agree to these Terms, you may not access or use the Service.
               </p>
             </section>
 
@@ -43,7 +43,10 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">4. Credits and Subscriptions</h2>
               <p className="mb-4">
-                The Service operates on a credit-based system. Free users receive a limited number of credits per month. Premium subscriptions provide additional credits and features. Credits are non-transferable and expire according to the terms of your subscription plan.
+                The Service operates on a credit-based and subscription system. Free users receive a limited number of credits per month. Premium subscriptions provide additional credits and features. Credits are non-transferable and expire according to the terms of your subscription plan.
+              </p>
+              <p className="mb-4">
+                On the website (including at oalethia.com), payments and subscriptions are processed by Stripe and are subject to Stripe&apos;s terms and privacy policy. In the mobile applications, in-app purchases and subscriptions are processed by Apple (App Store) and/or Google (Play Store) according to their respective store terms and policies. Oalethia does not directly store full payment card details; those are handled securely by the relevant payment providers and app stores.
               </p>
             </section>
 
@@ -100,7 +103,14 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold mb-4 text-white">11. Contact Information</h2>
               <p className="mb-4">
-                If you have any questions about these Terms of Service, please contact us through our support channels.
+                If you have any questions about these Terms of Service, please contact us at{" "}
+                <a
+                  href="mailto:support@oalethia.com"
+                  className="underline text-blue-300 hover:text-blue-200"
+                >
+                  support@oalethia.com
+                </a>
+                . If we provide a dedicated support page or help center within the website or mobile apps, you may also contact us through those channels.
               </p>
             </section>
           </div>

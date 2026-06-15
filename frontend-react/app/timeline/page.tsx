@@ -212,6 +212,8 @@ function TimelineContent() {
             user={user}
             context={context}
             timeframe={timeframe}
+            lifeContext={results.life_context}
+            imageSequence={results.image_sequence}
           />
         )}
       </div>

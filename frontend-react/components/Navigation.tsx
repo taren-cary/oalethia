@@ -269,13 +269,25 @@ export default function Navigation() {
             </Link>
             {user ? (
               <>
-                <Link 
-                  href="/timelines" 
+                <Link
+                  href="/timelines"
                   className="glass-button text-sm"
                 >
                   My Timelines
                 </Link>
-                <div 
+                <Link
+                  href="/home"
+                  className="glass-button text-sm"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/profile"
+                  className="glass-button text-sm"
+                >
+                  Profile
+                </Link>
+                <div
                   className="relative"
                   onMouseEnter={() => setShowPointsDropdown(true)}
                   onMouseLeave={() => setShowPointsDropdown(false)}
@@ -428,7 +440,21 @@ export default function Navigation() {
                   >
                     My Timelines
                   </Link>
-                  
+                  <Link
+                    href="/home"
+                    className="glass-button w-full text-sm text-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="glass-button w-full text-sm text-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+
                   {/* User Info Section - Points and Badge */}
                   <div className="glass-card p-4 space-y-3">
                     {/* Level Display */}

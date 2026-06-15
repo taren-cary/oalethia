@@ -34,9 +34,11 @@ interface ResultsSectionProps {
   user?: any;
   context?: string;
   timeframe?: number;
+  lifeContext?: string;
+  imageSequence?: string[];
 }
 
-export default function ResultsSection({ outcome, actions, timelineAffirmations, tempGenerationId, summary, user, context, timeframe }: ResultsSectionProps) {
+export default function ResultsSection({ outcome, actions, timelineAffirmations, tempGenerationId, summary, user, context, timeframe, lifeContext, imageSequence }: ResultsSectionProps) {
   const { session } = useAuth();
   const [completedActions, setCompletedActions] = useState<number[]>([]);
   const [skippedActions, setSkippedActions] = useState<number[]>([]);
@@ -45,6 +47,7 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
   const [affirmationConfirmed, setAffirmationConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savedTimelineId, setSavedTimelineId] = useState<string | null>(null);
   const [expandedActions, setExpandedActions] = useState<Set<number>>(new Set());
   const [userSubscription, setUserSubscription] = useState<any>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -58,12 +61,13 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
       localStorage.removeItem('eternion_affirmation_index');
       localStorage.removeItem('eternion_affirmation_date');
     }
-    
+
     // Initialize with empty arrays for fresh start
     setCompletedActions([]);
     setSkippedActions([]);
     setCurrentAffirmationIndex(0);
     setLastAffirmationDate('');
+    setSavedTimelineId(null);
   }, [actions]); // Reset when actions change (new timeline)
 
   // For new timeline generation, use simple daily rotation
@@ -131,22 +135,63 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
   const isAnonymous = !user;
   const isFreeUser = user && (userSubscription?.isFree === true || userSubscription?.tier?.name === 'free');
 
-  const toggleAction = (index: number) => {
-    const newCompleted = completedActions.includes(index)
-      ? completedActions.filter(i => i !== index)
-      : [...completedActions, index];
-    
+  const toggleAction = async (index: number) => {
+    const isCompleting = !completedActions.includes(index);
+    const newCompleted = isCompleting
+      ? [...completedActions, index]
+      : completedActions.filter(i => i !== index);
+
     setCompletedActions(newCompleted);
     if (typeof window !== 'undefined') {
       localStorage.setItem('eternion_progress', JSON.stringify(newCompleted));
     }
+
+    if (savedTimelineId && session) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/action-progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            generationId: savedTimelineId,
+            actionIndex: index,
+            completed: isCompleting,
+            skipped: false,
+          }),
+        });
+      } catch {
+        // localStorage already updated; ignore network errors
+      }
+    }
   };
 
-  const skipAction = (index: number) => {
+  const skipAction = async (index: number) => {
     const newSkipped = [...skippedActions, index];
     setSkippedActions(newSkipped);
     if (typeof window !== 'undefined') {
       localStorage.setItem('eternion_skipped', JSON.stringify(newSkipped));
+    }
+
+    if (savedTimelineId && session) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/action-progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            generationId: savedTimelineId,
+            actionIndex: index,
+            completed: false,
+            skipped: true,
+          }),
+        });
+      } catch {
+        // localStorage already updated; ignore network errors
+      }
     }
   };
 
@@ -336,6 +381,8 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
         timeline_affirmations: timelineAffirmations,
         summary,
         credits_used: 1,
+        life_context: lifeContext || null,
+        image_sequence: imageSequence || null,
         created_at: new Date().toISOString()
       };
 
@@ -349,15 +396,17 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
         throw error;
       }
 
+      setSavedTimelineId(savedTimeline.id);
+
       // Create daily affirmation records for the next 30 days
-      console.log('Creating daily affirmation records for saved timeline...');
       const today = new Date();
+      const imageCount = imageSequence?.length || 1;
       const dailyAffirmations = [];
-      
+
       for (let i = 0; i < Math.min(30, timelineAffirmations.length); i++) {
         const futureDate = new Date(today);
         futureDate.setDate(today.getDate() + i);
-        
+
         dailyAffirmations.push({
           user_id: user.id,
           timeline_id: savedTimeline.id,
@@ -365,7 +414,8 @@ export default function ResultsSection({ outcome, actions, timelineAffirmations,
           affirmation_text: timelineAffirmations[i],
           date: futureDate.toISOString().split('T')[0],
           affirmed: false,
-          points_awarded: 0
+          points_awarded: 0,
+          image_index: i % imageCount,
         });
       }
 

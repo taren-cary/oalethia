@@ -44,8 +44,9 @@ export default function TimelineViewPage() {
     if (user && !authLoading && params.id) {
       fetchTimeline();
       loadProgress();
+      if (session) loadProgressFromServer();
     }
-  }, [user, authLoading, params.id]);
+  }, [user, session, authLoading, params.id]);
 
   // Load today's affirmation and check status
   useEffect(() => {
@@ -86,24 +87,38 @@ export default function TimelineViewPage() {
 
   const loadProgress = () => {
     if (typeof window === 'undefined') return;
-    
     const savedProgress = localStorage.getItem(`eternion_progress_${params.id}`);
     const savedSkipped = localStorage.getItem(`eternion_skipped_${params.id}`);
     const savedAffirmationIndex = localStorage.getItem(`eternion_affirmation_index_${params.id}`);
     const savedAffirmationDate = localStorage.getItem(`eternion_affirmation_date_${params.id}`);
     const confirmedDate = localStorage.getItem(`eternion_affirmation_confirmed_${params.id}`);
-
-    if (savedProgress) {
-      setCompletedActions(JSON.parse(savedProgress));
-    }
-    if (savedSkipped) {
-      setSkippedActions(JSON.parse(savedSkipped));
-    }
-    if (savedAffirmationIndex) {
-      setCurrentAffirmationIndex(parseInt(savedAffirmationIndex));
-    }
+    if (savedProgress) setCompletedActions(JSON.parse(savedProgress));
+    if (savedSkipped) setSkippedActions(JSON.parse(savedSkipped));
+    if (savedAffirmationIndex) setCurrentAffirmationIndex(parseInt(savedAffirmationIndex));
     if (savedAffirmationDate === new Date().toDateString()) {
       setAffirmationConfirmed(confirmedDate === new Date().toDateString());
+    }
+  };
+
+  const loadProgressFromServer = async () => {
+    if (!session || !params.id) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/action-progress/${params.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const completed: number[] = (data.progress ?? []).filter((p: any) => p.completed).map((p: any) => p.action_index);
+        const skipped: number[] = (data.progress ?? []).filter((p: any) => p.skipped).map((p: any) => p.action_index);
+        setCompletedActions(completed);
+        setSkippedActions(skipped);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`eternion_progress_${params.id}`, JSON.stringify(completed));
+          localStorage.setItem(`eternion_skipped_${params.id}`, JSON.stringify(skipped));
+        }
+      }
+    } catch {
+      // keep localStorage values
     }
   };
 
@@ -163,22 +178,44 @@ export default function TimelineViewPage() {
     }
   };
 
-  const toggleAction = (index: number) => {
-    const newCompleted = completedActions.includes(index)
-      ? completedActions.filter(i => i !== index)
-      : [...completedActions, index];
-    
+  const toggleAction = async (index: number) => {
+    const isCompleting = !completedActions.includes(index);
+    const newCompleted = isCompleting
+      ? [...completedActions, index]
+      : completedActions.filter(i => i !== index);
     setCompletedActions(newCompleted);
     if (typeof window !== 'undefined') {
       localStorage.setItem(`eternion_progress_${params.id}`, JSON.stringify(newCompleted));
     }
+    if (session && params.id) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/action-progress`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ generationId: params.id, actionIndex: index, completed: isCompleting, skipped: false }),
+        });
+      } catch {
+        // localStorage already updated
+      }
+    }
   };
 
-  const skipAction = (index: number) => {
+  const skipAction = async (index: number) => {
     const newSkipped = [...skippedActions, index];
     setSkippedActions(newSkipped);
     if (typeof window !== 'undefined') {
       localStorage.setItem(`eternion_skipped_${params.id}`, JSON.stringify(newSkipped));
+    }
+    if (session && params.id) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/action-progress`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ generationId: params.id, actionIndex: index, completed: false, skipped: true }),
+        });
+      } catch {
+        // localStorage already updated
+      }
     }
   };
 

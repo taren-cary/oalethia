@@ -114,6 +114,26 @@ export default function HomeHeroSection({ user }: HomeHeroSectionProps) {
               </div>
             </div>
           )}
+
+          {/* App Store Petition Banner */}
+          <div className="max-w-md mx-auto lg:mx-0">
+            <div className="glass-card p-4 border border-orange-400/40 bg-gradient-to-r from-orange-500/10 to-red-500/10">
+              <p className="text-white font-semibold text-sm mb-1">
+                🍎 Apple rejected us from the App Store
+              </p>
+              <p className="text-white/70 text-xs mb-3">
+                They called us a duplicate astrology app — we're actually the first goal-tracking app to use astrological timing. Help us get in.
+              </p>
+              <a
+                href="https://www.ipetitions.com/p/add-oalethia-to-the-apple-app-store/?utm_source=share_copy&utm_medium=social&utm_campaign=creator_first_share"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-button bg-orange-500/30 border-orange-400/50 hover:bg-orange-500/50 text-white text-xs font-semibold px-4 py-2 inline-block"
+              >
+                Sign the Petition ✍️
+              </a>
+            </div>
+          </div>
         </div>
         
         {/* Trust Signals */}

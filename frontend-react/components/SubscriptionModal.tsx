@@ -22,13 +22,13 @@ export default function SubscriptionModal({ isOpen, onClose, type }: Subscriptio
     setError('');
     
     try {
-      const endpoint = type === 'subscription' 
+      const endpoint = type === 'subscription'
         ? '/api/create-checkout-session'
         : '/api/create-credits-checkout';
-      
+
       const body = type === 'subscription'
-        ? { priceId: 'price_1SX5ZNACtGGEAl9EbA1wVA0A' } // Your subscription price ID
-        : { priceId: 'price_1SX5YsACtGGEAl9EitsVNsN3', credits: 3 }; // Replace with your credits price ID
+        ? { priceId: process.env.NEXT_PUBLIC_STRIPE_SUBSCRIPTION_PRICE_ID }
+        : { priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID, credits: 3 };
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
         method: 'POST',
@@ -57,7 +57,7 @@ export default function SubscriptionModal({ isOpen, onClose, type }: Subscriptio
         } else if (response.status === 401 || errorMessage.toLowerCase().includes('unauthorized')) {
           throw new Error('Your session has expired. Please sign in again and try again.');
         } else if (response.status === 500) {
-          throw new Error('Server error. Please try again in a few moments. If the problem persists, contact support.');
+          throw new Error(errorMessage || 'Server error. Please try again in a few moments.');
         } else {
           throw new Error(errorMessage);
         }

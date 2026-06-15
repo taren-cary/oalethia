@@ -47,6 +47,140 @@ app.use(cors({
   ],
   credentials: true,
 }));
+
+// STRIPE WEBHOOK — must be registered before express.json() so Stripe's
+// signature verification receives the raw body buffer.
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error('Stripe webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
+    switch (event.type) {
+
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const userId = session.metadata?.user_id;
+        if (!userId) break;
+
+        if (session.mode === 'subscription') {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          const priceId = subscription.items.data[0]?.price?.id;
+
+          const { data: tier } = await supabase
+            .from('subscription_tiers')
+            .select('id, monthly_credits')
+            .or(`stripe_price_id_monthly.eq.${priceId},stripe_price_id_yearly.eq.${priceId}`)
+            .single();
+
+          if (tier) {
+            await supabase
+              .from('user_subscriptions')
+              .update({
+                tier_id: tier.id,
+                stripe_subscription_id: subscription.id,
+                stripe_customer_id: session.customer,
+                status: 'active',
+                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              })
+              .eq('user_id', userId);
+
+            await supabase
+              .from('user_credits')
+              .update({ credits: tier.monthly_credits || 10 })
+              .eq('user_id', userId);
+          }
+        } else if (session.mode === 'payment') {
+          // One-time credit purchase — add credits to existing balance
+          const creditsToAdd = parseInt(session.metadata?.credits || '3', 10);
+          const { data: current } = await supabase
+            .from('user_credits')
+            .select('credits')
+            .eq('user_id', userId)
+            .single();
+
+          await supabase
+            .from('user_credits')
+            .update({ credits: (current?.credits || 0) + creditsToAdd })
+            .eq('user_id', userId);
+        }
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        await supabase
+          .from('user_subscriptions')
+          .update({
+            status: subscription.status,
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          })
+          .eq('stripe_subscription_id', subscription.id);
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+        const { data: freeTier } = await supabase
+          .from('subscription_tiers')
+          .select('id')
+          .eq('name', 'free')
+          .single();
+
+        if (freeTier) {
+          await supabase
+            .from('user_subscriptions')
+            .update({
+              tier_id: freeTier.id,
+              stripe_subscription_id: null,
+              status: 'active',
+              current_period_end: null,
+            })
+            .eq('stripe_subscription_id', subscription.id);
+        }
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        // Monthly renewal — reset credits for the new billing period
+        const invoice = event.data.object;
+        if (invoice.billing_reason === 'subscription_cycle') {
+          const { data: userSub } = await supabase
+            .from('user_subscriptions')
+            .select('user_id, subscription_tiers(monthly_credits)')
+            .eq('stripe_subscription_id', invoice.subscription)
+            .single();
+
+          if (userSub) {
+            const monthlyCredits = userSub.subscription_tiers?.monthly_credits || 10;
+            await supabase
+              .from('user_credits')
+              .update({
+                credits: monthlyCredits,
+                last_reset_date: new Date().toISOString().split('T')[0],
+              })
+              .eq('user_id', userSub.user_id);
+          }
+        }
+        break;
+      }
+    }
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('Stripe webhook processing error:', err);
+    res.status(500).json({ error: 'Webhook processing failed' });
+  }
+});
+
 app.use(express.json());
 app.use(express.static(__dirname));
 
@@ -1459,10 +1593,10 @@ app.get('/api/today-affirmation/:generationId', requireAuth, async (req, res) =>
     const { generationId } = req.params;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // First, get the timeline to access the affirmations array
+    // Fetch timeline with all needed fields in one query
     const { data: timeline, error: timelineError } = await supabase
       .from('action_timeline_generations')
-      .select('timeline_affirmations')
+      .select('timeline_affirmations, image_sequence, created_at')
       .eq('id', generationId)
       .eq('user_id', req.user.id)
       .single();
@@ -1471,6 +1605,11 @@ app.get('/api/today-affirmation/:generationId', requireAuth, async (req, res) =>
       console.error('Error fetching timeline:', timelineError);
       return res.status(404).json({ error: 'Timeline not found' });
     }
+
+    const getImageUrl = (imgSeq, index) => {
+      if (!imgSeq || !Array.isArray(imgSeq) || imgSeq.length === 0) return null;
+      return imgSeq[index % imgSeq.length] || null;
+    };
 
     // Check if we already have today's affirmation in the database
     const { data: existingAffirmation, error: checkError } = await supabase
@@ -1482,28 +1621,17 @@ app.get('/api/today-affirmation/:generationId', requireAuth, async (req, res) =>
       .single();
 
     if (existingAffirmation && !checkError) {
-      // Return existing affirmation
       return res.json({
         affirmation_index: existingAffirmation.affirmation_index,
         affirmation_text: existingAffirmation.affirmation_text,
         affirmed: existingAffirmation.affirmed,
-        date: existingAffirmation.date
+        date: existingAffirmation.date,
+        image_url: getImageUrl(timeline.image_sequence, existingAffirmation.affirmation_index)
       });
     }
 
     // Calculate today's affirmation index based on days since timeline creation
-    const { data: timelineData, error: timelineDataError } = await supabase
-      .from('action_timeline_generations')
-      .select('created_at')
-      .eq('id', generationId)
-      .single();
-
-    if (timelineDataError) {
-      console.error('Error fetching timeline data:', timelineDataError);
-      return res.status(500).json({ error: 'Failed to fetch timeline data' });
-    }
-
-    const timelineCreatedDate = new Date(timelineData.created_at);
+    const timelineCreatedDate = new Date(timeline.created_at);
     const daysSinceCreation = Math.floor((new Date() - timelineCreatedDate) / (1000 * 60 * 60 * 24));
     const affirmationIndex = daysSinceCreation % timeline.timeline_affirmations.length;
     const affirmationText = timeline.timeline_affirmations[affirmationIndex];
@@ -1532,7 +1660,8 @@ app.get('/api/today-affirmation/:generationId', requireAuth, async (req, res) =>
       affirmation_index: affirmationIndex,
       affirmation_text: affirmationText,
       affirmed: false,
-      date: today
+      date: today,
+      image_url: getImageUrl(timeline.image_sequence, affirmationIndex)
     });
 
   } catch (error) {
@@ -2339,7 +2468,8 @@ app.post('/api/create-checkout-session', requireAuth, async (req, res) => {
     res.json({ url: session.url });
   } catch (error) {
     console.error('Checkout session creation error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    const message = error?.raw?.message || error?.message || 'Failed to create checkout session';
+    res.status(500).json({ error: message });
   }
 });
 
@@ -2398,7 +2528,8 @@ app.post('/api/create-credits-checkout', requireAuth, async (req, res) => {
     res.json({ url: session.url });
   } catch (error) {
     console.error('Credits checkout session creation error:', error);
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    const message = error?.raw?.message || error?.message || 'Failed to create checkout session';
+    res.status(500).json({ error: message });
   }
 });
 
